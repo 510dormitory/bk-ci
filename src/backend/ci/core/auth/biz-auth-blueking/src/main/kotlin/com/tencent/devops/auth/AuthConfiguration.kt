@@ -91,65 +91,6 @@ class AuthConfiguration {
     fun iamEsbService() = IamEsbService()
 
     @Bean
-    @ConditionalOnMissingBean(PermissionService::class)
-    fun permissionService(
-        groupService: AuthGroupService,
-        actionService: ActionService,
-        groupMemberService: AuthGroupMemberService,
-        authCustomizePermissionService: AuthCustomizePermissionService,
-        strategyService: StrategyService
-    ) = SimpleAuthPermissionService(
-        groupService, actionService, groupMemberService, authCustomizePermissionService, strategyService
-    )
-
-    @Bean
-    @ConditionalOnMissingBean(PermissionProjectService::class)
-    fun permissionProjectService(
-        groupMemberService: AuthGroupMemberService,
-        groupService: AuthGroupService
-    ) = SimplePermissionProjectServiceImpl(
-        groupMemberService,
-        groupService
-    )
-
-    @Bean
-    @ConditionalOnMissingBean(PermissionRoleService::class)
-    fun permissionRoleService(
-        dslContext: DSLContext,
-        groupService: AuthGroupService,
-        resourceService: BkResourceService,
-        actionsService: ActionService,
-        authCustomizePermissionService: AuthCustomizePermissionService
-    ) = SimplePermissionRoleService(
-        dslContext = dslContext,
-        groupService = groupService,
-        resourceService = resourceService,
-        actionsService = actionsService,
-        authCustomizePermissionService = authCustomizePermissionService
-    )
-
-    @Bean
-    @ConditionalOnMissingBean(PermissionRoleMemberService::class)
-    fun permissionRoleMemberServiceImpl(
-        permissionGradeService: PermissionGradeService,
-        groupService: AuthGroupService,
-        iamCacheService: IamCacheService,
-        groupMemberService: AuthGroupMemberService
-    ) = SimplePermissionRoleMemberServiceImpl(
-        permissionGradeService, groupService, iamCacheService, groupMemberService
-    )
-
-    @Bean
-    @ConditionalOnMissingBean(PermissionGradeService::class)
-    fun permissionGradeService(
-        permissionProjectService: PermissionProjectService
-    ) = SimplePermissionGraderServiceImpl(permissionProjectService)
-
-    @Bean
-    @ConditionalOnMissingBean(PermissionGrantService::class)
-    fun permissionGrantService() = SimplePermissionGrantServiceImpl()
-
-    @Bean
     @ConditionalOnMissingBean
     fun iamConfiguration() = IamConfiguration(systemId, appCode, appSecret, iamBaseUrl, iamApigw)
 

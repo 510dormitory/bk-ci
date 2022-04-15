@@ -33,14 +33,31 @@ import com.tencent.devops.auth.dao.ResourceDao
 import com.tencent.devops.auth.filter.TokenCheckFilter
 import com.tencent.devops.auth.refresh.dispatch.AuthRefreshDispatch
 import com.tencent.devops.auth.refresh.listener.AuthRefreshEventListener
+import com.tencent.devops.auth.service.AuthCustomizePermissionService
+import com.tencent.devops.auth.service.AuthGroupMemberService
+import com.tencent.devops.auth.service.AuthGroupService
 import com.tencent.devops.auth.service.DefaultDeptServiceImpl
 import com.tencent.devops.auth.service.DeptService
 import com.tencent.devops.auth.service.EmptyPermissionExtServiceImpl
 import com.tencent.devops.auth.service.EmptyPermissionUrlServiceImpl
+import com.tencent.devops.auth.service.StrategyService
 import com.tencent.devops.auth.service.action.ActionService
 import com.tencent.devops.auth.service.action.BkResourceService
 import com.tencent.devops.auth.service.action.impl.SimpleBkActionServiceImpl
 import com.tencent.devops.auth.service.action.impl.SimpleBkResourceServiceImpl
+import com.tencent.devops.auth.service.ci.PermissionProjectService
+import com.tencent.devops.auth.service.ci.PermissionRoleMemberService
+import com.tencent.devops.auth.service.ci.PermissionRoleService
+import com.tencent.devops.auth.service.ci.PermissionService
+import com.tencent.devops.auth.service.iam.IamCacheService
+import com.tencent.devops.auth.service.iam.PermissionGradeService
+import com.tencent.devops.auth.service.iam.PermissionGrantService
+import com.tencent.devops.auth.service.simple.SimpleAuthPermissionService
+import com.tencent.devops.auth.service.simple.SimplePermissionGraderServiceImpl
+import com.tencent.devops.auth.service.simple.SimplePermissionGrantServiceImpl
+import com.tencent.devops.auth.service.simple.SimplePermissionProjectServiceImpl
+import com.tencent.devops.auth.service.simple.SimplePermissionRoleMemberServiceImpl
+import com.tencent.devops.auth.service.simple.SimplePermissionRoleService
 import com.tencent.devops.auth.utils.HostUtils
 import com.tencent.devops.common.client.ClientTokenService
 import com.tencent.devops.common.event.dispatcher.pipeline.mq.MQ
@@ -135,6 +152,67 @@ class AuthCoreConfiguration {
         container.setMessageListener(adapter)
         return container
     }
+
+
+    @Bean
+    @ConditionalOnMissingBean(PermissionService::class)
+    fun permissionService(
+        groupService: AuthGroupService,
+        actionService: ActionService,
+        groupMemberService: AuthGroupMemberService,
+        authCustomizePermissionService: AuthCustomizePermissionService,
+        strategyService: StrategyService
+    ) = SimpleAuthPermissionService(
+        groupService, actionService, groupMemberService, authCustomizePermissionService, strategyService
+    )
+
+    @Bean
+    @ConditionalOnMissingBean(PermissionProjectService::class)
+    fun permissionProjectService(
+        groupMemberService: AuthGroupMemberService,
+        groupService: AuthGroupService
+    ) = SimplePermissionProjectServiceImpl(
+        groupMemberService,
+        groupService
+    )
+
+    @Bean
+    @ConditionalOnMissingBean(PermissionRoleService::class)
+    fun permissionRoleService(
+        dslContext: DSLContext,
+        groupService: AuthGroupService,
+        resourceService: BkResourceService,
+        actionsService: ActionService,
+        authCustomizePermissionService: AuthCustomizePermissionService
+    ) = SimplePermissionRoleService(
+        dslContext = dslContext,
+        groupService = groupService,
+        resourceService = resourceService,
+        actionsService = actionsService,
+        authCustomizePermissionService = authCustomizePermissionService
+    )
+
+    @Bean
+    @ConditionalOnMissingBean(PermissionRoleMemberService::class)
+    fun permissionRoleMemberServiceImpl(
+        permissionGradeService: PermissionGradeService,
+        groupService: AuthGroupService,
+        iamCacheService: IamCacheService,
+        groupMemberService: AuthGroupMemberService
+    ) = SimplePermissionRoleMemberServiceImpl(
+        permissionGradeService, groupService, iamCacheService, groupMemberService
+    )
+
+    @Bean
+    @ConditionalOnMissingBean(PermissionGradeService::class)
+    fun permissionGradeService(
+        permissionProjectService: PermissionProjectService
+    ) = SimplePermissionGraderServiceImpl(permissionProjectService)
+
+    @Bean
+    @ConditionalOnMissingBean(PermissionGrantService::class)
+    fun permissionGrantService() = SimplePermissionGrantServiceImpl()
+
 
     @Bean
     @ConditionalOnMissingBean(DeptService::class)
