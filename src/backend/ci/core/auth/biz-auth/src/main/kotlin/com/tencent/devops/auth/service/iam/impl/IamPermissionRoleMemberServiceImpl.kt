@@ -241,9 +241,9 @@ open class IamPermissionRoleMemberServiceImpl @Autowired constructor(
             if (it.type == UserType.USER) {
                 checkUser(it.id)
                 userIds.add(it.id)
-                roleMembers.add(ManagerMember(ManagerScopesEnum.USER.name, it.id))
+                roleMembers.add(ManagerMember(ManagerScopesEnum.getType(ManagerScopesEnum.USER), it.id))
             } else if (it.type == UserType.DEPARTMENT) {
-                roleMembers.add(ManagerMember(ManagerScopesEnum.DEPARTMENT.name, it.id))
+                roleMembers.add(ManagerMember(ManagerScopesEnum.getType(ManagerScopesEnum.DEPARTMENT), it.id))
             }
         }
         val expiredTime = System.currentTimeMillis() / 1000 + TimeUnit.DAYS.toSeconds(expiredDay)
