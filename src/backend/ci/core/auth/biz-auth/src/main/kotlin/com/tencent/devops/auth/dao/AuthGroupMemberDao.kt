@@ -34,7 +34,6 @@ import com.tencent.devops.model.auth.tables.records.TAuthGroupMemberRecord
 import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.Result
-import org.jooq.Role
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
 
