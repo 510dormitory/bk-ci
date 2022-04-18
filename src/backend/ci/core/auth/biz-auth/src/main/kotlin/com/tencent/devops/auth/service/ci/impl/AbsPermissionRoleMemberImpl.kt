@@ -42,9 +42,7 @@ import com.tencent.devops.auth.service.ci.PermissionRoleMemberService
 import com.tencent.devops.auth.service.iam.IamCacheService
 import com.tencent.devops.auth.service.iam.PermissionGradeService
 import com.tencent.devops.common.api.exception.ErrorCodeException
-import com.tencent.devops.common.api.exception.PermissionForbiddenException
 import com.tencent.devops.common.service.utils.MessageCodeUtil
-import org.apache.http.auth.AUTH
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import java.util.concurrent.TimeUnit
@@ -146,11 +144,8 @@ abstract class AbsPermissionRoleMemberImpl @Autowired constructor(
         managerGroup: Boolean
     ) {
         // 如果不是本人操作,需校验操作人是否为项目管理员。如果是本人操作是为主动退出用户组
-        if (executeUserId != deleteUserId && managerGroup) {
+        if (executeUserId != deleteUserId) {
             permissionGradeService.checkGradeManagerUser(executeUserId, projectId)
-        } else if (executeUserId != deleteUserId && !managerGroup) {
-            // 非管理员操作， 切操作目标为其他用户
-            throw PermissionForbiddenException(MessageCodeUtil.getCodeLanMessage(AuthMessageCode.GRADE_CHECK_FAIL))
         }
         groupMemberService.deleteGroupMember(roleId, deleteUserId)
     }
@@ -172,9 +167,37 @@ abstract class AbsPermissionRoleMemberImpl @Autowired constructor(
         return groupMemberService.getUserGroupByProject(projectId, userId)
     }
 
+    override fun renewalUser(
+        projectId: String,
+        roleId: Int,
+        executeUser: String,
+        renewalUser: String,
+        expiredDay: Long,
+    ): Boolean {
+        // 校验用户是否有加入用户组
+        if (!groupMemberService.userJoinGroup(renewalUser, roleId)) {
+            throw ErrorCodeException(
+                errorCode = AuthMessageCode.USER_EXIST_JOIN_GROUP,
+                defaultMessage = MessageCodeUtil.getCodeLanMessage(AuthMessageCode.USER_EXIST_JOIN_GROUP)
+            )
+        }
+
+        // 续约天数最多为1年
+        val expiredTime = if (expiredDay > MAX_EXPIRED_DAY) {
+            MAX_EXPIRED_DAY
+        } else expiredDay
+
+        return groupMemberService.renewalUser(
+            userId = renewalUser,
+            expiredDay = expiredTime as Long,
+            groupId = roleId
+        ) == 1
+    }
+
     abstract fun checkUser(userId: String)
 
     companion object {
+        const val MAX_EXPIRED_DAY = 365
         val logger = LoggerFactory.getLogger(AbsPermissionRoleMemberImpl::class.java)
     }
 }

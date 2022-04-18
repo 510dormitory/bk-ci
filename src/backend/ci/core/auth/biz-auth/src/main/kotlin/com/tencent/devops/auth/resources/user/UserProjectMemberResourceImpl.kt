@@ -111,4 +111,14 @@ class UserProjectMemberResourceImpl @Autowired constructor(
     ): Result<List<UserGroupInfoDTO>?> {
         return Result(permissionRoleMemberService.getUserGroups(projectId, searchUserId))
     }
+
+    override fun renewalUser(
+        userId: String,
+        projectId: String,
+        roleId: Int,
+        members: List<RoleMemberDTO>,
+        expiredDay: Long,
+    ): Result<Boolean> {
+        TODO("Not yet implemented")
+    }
 }

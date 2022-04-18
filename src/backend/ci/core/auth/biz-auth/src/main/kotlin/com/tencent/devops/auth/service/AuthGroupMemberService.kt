@@ -83,6 +83,19 @@ class AuthGroupMemberService @Autowired constructor(
         )
     }
 
+    fun renewalUser(
+        userId: String,
+        groupId: Int,
+        expiredDay: Long
+    ): Int {
+        return authGroupMemberDao.updateGroupMemberExpired(
+            dslContext = dslContext,
+            groupId = groupId,
+            userId = userId,
+            expiredDay = expiredDay
+        )
+    }
+
     fun getRoleMember(
         roleId: Int,
         projectCode: String

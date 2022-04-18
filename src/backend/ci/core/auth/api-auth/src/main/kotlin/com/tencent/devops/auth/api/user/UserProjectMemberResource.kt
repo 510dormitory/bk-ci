@@ -43,6 +43,7 @@ import javax.ws.rs.DELETE
 import javax.ws.rs.GET
 import javax.ws.rs.HeaderParam
 import javax.ws.rs.POST
+import javax.ws.rs.PUT
 import javax.ws.rs.Path
 import javax.ws.rs.PathParam
 import javax.ws.rs.Produces
@@ -148,4 +149,24 @@ interface UserProjectMemberResource {
         @QueryParam("searchUserId")
         searchUserId: String
     ): Result<List<UserGroupInfoDTO>?>
+
+    @PUT
+    @Path("/projectIds/{projectId}//roleIds/{roleId}/renewal")
+    @ApiOperation("用户续约用户组")
+    fun renewalUser(
+        @ApiParam(name = "用户名", required = true)
+        @HeaderParam(AUTH_HEADER_USER_ID)
+        userId: String,
+        @ApiParam(name = "项目标识", required = true)
+        @PathParam("projectId")
+        projectId: String,
+        @ApiParam(name = "角色Id", required = true)
+        @PathParam("roleId")
+        roleId: Int,
+        @ApiParam("添加用户集合", required = true)
+        members: List<RoleMemberDTO>,
+        @ApiParam(name = "超时天数", required = true)
+        @QueryParam("expiredDay")
+        expiredDay: Long
+    ): Result<Boolean>
 }

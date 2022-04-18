@@ -58,4 +58,12 @@ interface PermissionRoleMemberService {
     fun getProjectAllMember(projectId: String, page: Int?, pageSize: Int?): ProjectMembersVO?
 
     fun getUserGroups(projectId: String, userId: String): List<UserGroupInfoDTO>?
+
+    fun renewalUser(
+        projectId: String,
+        roleId: Int,
+        executeUser: String,
+        renewalUser: String,
+        expiredDay: Long,
+    ): Boolean
 }

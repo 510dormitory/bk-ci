@@ -277,6 +277,17 @@ open class IamPermissionRoleMemberServiceImpl @Autowired constructor(
         }
     }
 
+    override fun renewalUser(
+        projectId: String,
+        roleId: Int,
+        executeUser: String,
+        renewalUser: String,
+        expiredDay: Long,
+    ): Boolean {
+        return super.renewalUser(projectId, roleId, executeUser, renewalUser, expiredDay)
+        // TODO: 待IAM提供续期接口
+    }
+
     override fun checkUser(userId: String) {
         return
     }
