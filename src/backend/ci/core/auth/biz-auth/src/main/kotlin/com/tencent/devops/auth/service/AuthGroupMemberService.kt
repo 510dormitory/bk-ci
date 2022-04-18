@@ -200,12 +200,12 @@ class AuthGroupMemberService @Autowired constructor(
         userIds: List<String>,
         roleId: Int
     ): Boolean {
-        authGroupMemberDao.getUsersGroupById(
+        val records = authGroupMemberDao.getUsersGroupById(
             dslContext = dslContext,
             userIds = userIds,
             roleId = roleId
         ) ?: return false
-        return true
+        return records.isNotEmpty
     }
 
     /**
