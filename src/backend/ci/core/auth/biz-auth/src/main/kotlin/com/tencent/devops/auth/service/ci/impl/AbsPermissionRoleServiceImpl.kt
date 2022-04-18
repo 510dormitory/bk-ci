@@ -29,7 +29,6 @@ package com.tencent.devops.auth.service.ci.impl
 
 import com.tencent.bk.sdk.iam.exception.IamException
 import com.tencent.devops.auth.constant.AuthMessageCode
-import com.tencent.devops.common.auth.api.pojo.DefaultGroupType
 import com.tencent.devops.auth.pojo.dto.GroupDTO
 import com.tencent.devops.auth.pojo.dto.ProjectRoleDTO
 import com.tencent.devops.auth.service.AuthCustomizePermissionService
@@ -40,6 +39,7 @@ import com.tencent.devops.auth.service.ci.PermissionRoleService
 import com.tencent.devops.common.api.exception.ErrorCodeException
 import com.tencent.devops.common.api.exception.ParamBlankException
 import com.tencent.devops.common.api.exception.RemoteServiceException
+import com.tencent.devops.common.auth.api.pojo.DefaultGroupType
 import com.tencent.devops.common.service.utils.MessageCodeUtil
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -67,6 +67,10 @@ abstract class AbsPermissionRoleServiceImpl @Autowired constructor(
             groupName = groupInfo.name
             displayName = DefaultGroupType.get(groupInfo.code).displayName
         }
+
+        checkRoleCode(groupInfo.code, groupInfo.defaultGroup ?: true)
+        checkRoleName(groupInfo.name, groupInfo.defaultGroup ?: true)
+
         val roleId = groupService.createGroup(
             userId = userId,
             projectCode = projectCode,
@@ -76,7 +80,7 @@ abstract class AbsPermissionRoleServiceImpl @Autowired constructor(
                 groupName = groupName,
                 displayName = displayName,
                 relationId = null,
-                desc = groupInfo.desc
+                desc = groupInfo.description
             )
         )
         try {
@@ -107,6 +111,8 @@ abstract class AbsPermissionRoleServiceImpl @Autowired constructor(
         roleId: Int,
         groupInfo: ProjectRoleDTO
     ) {
+        // 校验用户组名称
+        checkRoleName(groupInfo.name, true)
         groupService.updateGroup(userId, roleId, groupInfo)
         // 关联系统同步修改
         updateGroupExt(
@@ -143,10 +149,11 @@ abstract class AbsPermissionRoleServiceImpl @Autowired constructor(
         permissionStrategy.forEach { resource, actions ->
             // 校验资源和action是否存在
             if (resourceService.getResource(resource) == null) {
-                AuthCustomizePermissionService.logger.info("createCustomizePermission $userId$roleId$resource not exist")
+                logger.info("createCustomizePermission $userId$roleId$resource not exist")
                 throw ErrorCodeException(
                     errorCode = AuthMessageCode.RESOURCE_NOT_EXSIT,
-                    defaultMessage = MessageCodeUtil.getCodeMessage(AuthMessageCode.RESOURCE_NOT_EXSIT, arrayOf(resource))
+                    defaultMessage = MessageCodeUtil.getCodeMessage(
+                        messageCode = AuthMessageCode.RESOURCE_NOT_EXSIT, params = arrayOf(resource))
                 )
             }
 
@@ -188,6 +195,51 @@ abstract class AbsPermissionRoleServiceImpl @Autowired constructor(
         roleId: Int,
         permissionStrategy: Map<String, List<String>>
     ): Boolean
+
+
+    private fun checkRoleCode(code: String, defaultGroup: Boolean) {
+        // 校验用户组名称
+        if (defaultGroup) {
+            // 若为默认分组,需校验提供用户组是否在默认分组内。
+            if (!DefaultGroupType.contains(code)) {
+                // 不在默认分组内则直接报错
+                throw ErrorCodeException(
+                    errorCode = AuthMessageCode.DEFAULT_GROUP_ERROR,
+                    defaultMessage = MessageCodeUtil.getCodeLanMessage(AuthMessageCode.DEFAULT_GROUP_ERROR)
+                )
+            }
+        } else {
+            // 非默认分组,不能使用默认分组组名
+            if (DefaultGroupType.contains(code)) {
+                throw ErrorCodeException(
+                    errorCode = AuthMessageCode.UN_DEFAULT_GROUP_ERROR,
+                    defaultMessage = MessageCodeUtil.getCodeLanMessage(AuthMessageCode.UN_DEFAULT_GROUP_ERROR)
+                )
+            }
+        }
+    }
+
+    private fun checkRoleName(name: String, defaultGroup: Boolean) {
+        // 校验用户组名称
+        if (defaultGroup) {
+            // 若为默认分组,需校验提供用户组是否在默认分组内。
+            if (!DefaultGroupType.containsDisplayName(name)) {
+                // 不在默认分组内则直接报错
+                throw ErrorCodeException(
+                    errorCode = AuthMessageCode.DEFAULT_GROUP_ERROR,
+                    defaultMessage = MessageCodeUtil.getCodeLanMessage(AuthMessageCode.DEFAULT_GROUP_ERROR)
+                )
+            }
+        } else {
+            // 非默认分组,不能使用默认分组组名
+            if (DefaultGroupType.containsDisplayName(name)) {
+                throw ErrorCodeException(
+                    errorCode = AuthMessageCode.UN_DEFAULT_GROUP_ERROR,
+                    defaultMessage = MessageCodeUtil.getCodeLanMessage(AuthMessageCode.UN_DEFAULT_GROUP_ERROR)
+                )
+            }
+        }
+    }
 
     companion object {
         private val logger = LoggerFactory.getLogger(AbsPermissionRoleServiceImpl::class.java)

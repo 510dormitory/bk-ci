@@ -35,22 +35,26 @@ import com.tencent.bk.sdk.iam.service.PolicyService
 import com.tencent.bk.sdk.iam.service.SystemService
 import com.tencent.bk.sdk.iam.service.impl.ActionServiceImpl
 import com.tencent.bk.sdk.iam.service.impl.ApigwHttpClientServiceImpl
+import com.tencent.bk.sdk.iam.service.impl.GrantServiceImpl
 import com.tencent.bk.sdk.iam.service.impl.ResourceServiceImpl
 import com.tencent.bk.sdk.iam.service.impl.SystemServiceImpl
 import com.tencent.devops.auth.dao.ActionDao
 import com.tencent.devops.auth.dao.ResourceDao
 import com.tencent.devops.auth.service.AuthGroupService
+import com.tencent.devops.auth.service.BkAuthGrantPermissionServiceImpl
 import com.tencent.devops.auth.service.BkPermissionProjectService
 import com.tencent.devops.auth.service.BkPermissionService
+import com.tencent.devops.auth.service.BkPermissionUrlService
 import com.tencent.devops.auth.service.DeptService
 import com.tencent.devops.auth.service.action.BkResourceService
 import com.tencent.devops.auth.service.action.impl.IamBkActionServiceImpl
 import com.tencent.devops.auth.service.action.impl.IamBkResourceServiceImpl
-import com.tencent.devops.auth.service.iam.IamCacheService
 import com.tencent.devops.auth.service.ci.PermissionRoleMemberService
 import com.tencent.devops.auth.service.ci.PermissionRoleService
+import com.tencent.devops.auth.service.iam.IamCacheService
 import com.tencent.devops.common.auth.api.AuthProjectApi
 import com.tencent.devops.common.auth.code.BluekingV3ProjectAuthServiceCode
+import com.tencent.devops.common.auth.service.IamEsbService
 import com.tencent.devops.common.client.Client
 import org.jooq.DSLContext
 import org.springframework.boot.autoconfigure.AutoConfigureOrder
@@ -66,7 +70,6 @@ import org.springframework.core.Ordered
 @AutoConfigureOrder(Ordered.LOWEST_PRECEDENCE)
 @ConditionalOnProperty(prefix = "auth", name = ["idProvider"], havingValue = "bk_login_v3")
 class IamV3AuthConfiguration {
-
 
     @Bean
     fun v3permissionService(
@@ -103,7 +106,6 @@ class IamV3AuthConfiguration {
         projectAuthServiceCode = projectAuthServiceCode
     )
 
-
     @Bean
     fun iamSystemService(
         apigwHttpClientServiceImpl: ApigwHttpClientServiceImpl,
@@ -123,7 +125,6 @@ class IamV3AuthConfiguration {
         apigwHttpClientServiceImpl: ApigwHttpClientServiceImpl,
         systemService: SystemService
     ) = ResourceServiceImpl(iamConfiguration, apigwHttpClientServiceImpl, systemService)
-
 
     @Bean
     fun ciIamActionService(
@@ -157,5 +158,24 @@ class IamV3AuthConfiguration {
         iamConfiguration = iamConfiguration,
         resourceService = resourceService,
         iamSystemService = iamSystemService
+    )
+
+    @Bean
+    fun v3PermissionUrlService(
+        iamEsbService: IamEsbService,
+        iamConfiguration: IamConfiguration?,
+        bkPermissionProjectService: BkPermissionProjectService,
+        iamCacheService: IamCacheService
+    ) = BkPermissionUrlService(
+        iamEsbService, iamConfiguration, bkPermissionProjectService, iamCacheService
+    )
+
+    @Bean
+    fun v3PermissionUrlService(
+        grantServiceImpl: GrantServiceImpl,
+        iamConfiguration: IamConfiguration,
+        client: Client
+    ) = BkAuthGrantPermissionServiceImpl(
+        grantServiceImpl, iamConfiguration, client
     )
 }

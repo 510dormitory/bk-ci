@@ -27,7 +27,6 @@
 
 package com.tencent.devops.auth
 
-import com.tencent.devops.auth.service.simple.SimpleAuthPermissionService
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.tencent.bk.sdk.iam.config.IamConfiguration
 import com.tencent.bk.sdk.iam.service.impl.ApigwHttpClientServiceImpl
@@ -45,7 +44,10 @@ import com.tencent.devops.auth.service.ci.PermissionRoleService
 import com.tencent.devops.auth.service.ci.PermissionService
 import com.tencent.devops.auth.service.iam.IamCacheService
 import com.tencent.devops.auth.service.iam.PermissionGradeService
+import com.tencent.devops.auth.service.iam.PermissionGrantService
+import com.tencent.devops.auth.service.simple.SimpleAuthPermissionService
 import com.tencent.devops.auth.service.simple.SimplePermissionGraderServiceImpl
+import com.tencent.devops.auth.service.simple.SimplePermissionGrantServiceImpl
 import com.tencent.devops.auth.service.simple.SimplePermissionProjectServiceImpl
 import com.tencent.devops.auth.service.simple.SimplePermissionRoleMemberServiceImpl
 import com.tencent.devops.auth.service.simple.SimplePermissionRoleService
@@ -87,61 +89,6 @@ class AuthConfiguration {
 
     @Bean
     fun iamEsbService() = IamEsbService()
-
-    @Bean
-    @ConditionalOnMissingBean(PermissionService::class)
-    fun permissionService(
-        groupService: AuthGroupService,
-        actionService: ActionService,
-        groupMemberService: AuthGroupMemberService,
-        authCustomizePermissionService: AuthCustomizePermissionService,
-        strategyService: StrategyService
-    ) = SimpleAuthPermissionService(
-        groupService, actionService, groupMemberService, authCustomizePermissionService, strategyService
-    )
-
-    @Bean
-    @ConditionalOnMissingBean(PermissionProjectService::class)
-    fun permissionProjectService(
-        groupMemberService: AuthGroupMemberService,
-        groupService: AuthGroupService
-    ) = SimplePermissionProjectServiceImpl(
-        groupMemberService,
-        groupService
-    )
-
-    @Bean
-    @ConditionalOnMissingBean(PermissionRoleService::class)
-    fun permissionRoleService(
-        dslContext: DSLContext,
-        groupService: AuthGroupService,
-        resourceService: BkResourceService,
-        actionsService: ActionService,
-        authCustomizePermissionService: AuthCustomizePermissionService
-    ) = SimplePermissionRoleService(
-        dslContext = dslContext,
-        groupService = groupService,
-        resourceService = resourceService,
-        actionsService = actionsService,
-        authCustomizePermissionService = authCustomizePermissionService
-    )
-
-    @Bean
-    @ConditionalOnMissingBean(PermissionRoleMemberService::class)
-    fun permissionRoleMemberServiceImpl(
-        permissionGradeService: PermissionGradeService,
-        groupService: AuthGroupService,
-        iamCacheService: IamCacheService,
-        groupMemberService: AuthGroupMemberService,
-    ) = SimplePermissionRoleMemberServiceImpl(
-        permissionGradeService, groupService, iamCacheService, groupMemberService
-    )
-
-    @Bean
-    @ConditionalOnMissingBean(PermissionGradeService::class)
-    fun permissionGradeService(
-        permissionProjectService: PermissionProjectService
-    ) = SimplePermissionGraderServiceImpl(permissionProjectService)
 
     @Bean
     @ConditionalOnMissingBean

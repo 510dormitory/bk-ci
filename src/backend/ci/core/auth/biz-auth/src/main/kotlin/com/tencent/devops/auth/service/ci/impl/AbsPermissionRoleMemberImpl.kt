@@ -38,12 +38,13 @@ import com.tencent.devops.auth.pojo.enum.UserType
 import com.tencent.devops.auth.pojo.vo.ProjectMembersVO
 import com.tencent.devops.auth.service.AuthGroupMemberService
 import com.tencent.devops.auth.service.AuthGroupService
+import com.tencent.devops.auth.service.ci.PermissionRoleMemberService
 import com.tencent.devops.auth.service.iam.IamCacheService
 import com.tencent.devops.auth.service.iam.PermissionGradeService
-import com.tencent.devops.auth.service.ci.PermissionRoleMemberService
 import com.tencent.devops.common.api.exception.ErrorCodeException
 import com.tencent.devops.common.api.exception.PermissionForbiddenException
 import com.tencent.devops.common.service.utils.MessageCodeUtil
+import org.apache.http.auth.AUTH
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import java.util.concurrent.TimeUnit
@@ -76,7 +77,29 @@ abstract class AbsPermissionRoleMemberImpl @Autowired constructor(
 
         // 过期天数最大不能超过一年
         if (expiredDay > 365) {
-            // TODO:
+            logger.warn("$userId $projectId $roleId expiredDay more 365 days")
+            throw ErrorCodeException(
+                errorCode = AuthMessageCode.EXPIRED_DAY_ERROR,
+                defaultMessage = MessageCodeUtil.getCodeLanMessage(AuthMessageCode.EXPIRED_DAY_ERROR)
+            )
+        }
+
+        // 每次最多添加100个人
+        if (members.size > 100) {
+            logger.warn("$userId $projectId $roleId create member more 100")
+            throw ErrorCodeException(
+                errorCode = AuthMessageCode.ADD_GROUP_USER_MORE_MUST,
+                defaultMessage = MessageCodeUtil.getCodeLanMessage(AuthMessageCode.ADD_GROUP_USER_MORE_MUST)
+            )
+        }
+
+        // 单个用户组最多有500个用户或组织
+        if (groupMemberService.groupCount(projectId, roleId) > 500) {
+            logger.warn("$userId $projectId $roleId group user more 500")
+            throw ErrorCodeException(
+                errorCode = AuthMessageCode.GROUP_USER_COUNT_OUT_OF_BOUNDS,
+                defaultMessage = MessageCodeUtil.getCodeLanMessage(AuthMessageCode.GROUP_USER_COUNT_OUT_OF_BOUNDS)
+            )
         }
 
         // 获取用户组类型, 确保用户组存在
@@ -85,6 +108,18 @@ abstract class AbsPermissionRoleMemberImpl @Autowired constructor(
                 errorCode = AuthMessageCode.GROUP_NOT_EXIST,
                 defaultMessage = MessageCodeUtil.getCodeLanMessage(AuthMessageCode.GROUP_NOT_EXIST)
             )
+        val userIds = mutableListOf<String>()
+        members.map { userIds.add(it.id) }
+
+        // 判断用户是否已加入用户组
+        if (groupMemberService.usersJoinGroup(userIds, roleId)) {
+            throw ErrorCodeException(
+                errorCode = AuthMessageCode.USER_EXIST_JOIN_GROUP,
+                defaultMessage = MessageCodeUtil.getCodeLanMessage(
+                    AuthMessageCode.USER_EXIST_JOIN_GROUP
+                )
+            )
+        }
 
         val createMembers = mutableListOf<GroupMemberInfo>()
         members.forEach {
@@ -138,7 +173,6 @@ abstract class AbsPermissionRoleMemberImpl @Autowired constructor(
     }
 
     abstract fun checkUser(userId: String)
-
 
     companion object {
         val logger = LoggerFactory.getLogger(AbsPermissionRoleMemberImpl::class.java)

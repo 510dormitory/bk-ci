@@ -40,7 +40,6 @@ import com.tencent.bk.sdk.iam.exception.IamException
 import com.tencent.bk.sdk.iam.service.ManagerService
 import com.tencent.devops.auth.constant.AuthMessageCode
 import com.tencent.devops.auth.dao.AuthGroupDao
-import com.tencent.devops.common.auth.api.pojo.DefaultGroupType
 import com.tencent.devops.auth.pojo.DefaultGroup
 import com.tencent.devops.auth.pojo.dto.ProjectRoleDTO
 import com.tencent.devops.auth.pojo.vo.GroupInfoVo
@@ -54,9 +53,10 @@ import com.tencent.devops.auth.service.iam.IamCacheService
 import com.tencent.devops.auth.service.iam.PermissionGradeService
 import com.tencent.devops.common.api.exception.ErrorCodeException
 import com.tencent.devops.common.auth.api.AuthPermission
-import com.tencent.devops.common.auth.utils.IamGroupUtils
 import com.tencent.devops.common.auth.api.AuthResourceType
 import com.tencent.devops.common.auth.api.pojo.BkAuthGroup
+import com.tencent.devops.common.auth.api.pojo.DefaultGroupType
+import com.tencent.devops.common.auth.utils.IamGroupUtils
 import com.tencent.devops.common.client.Client
 import com.tencent.devops.common.service.utils.MessageCodeUtil
 import com.tencent.devops.project.api.service.ServiceProjectResource
@@ -64,7 +64,7 @@ import org.jooq.DSLContext
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 
-class IamPermissionRoleExtService @Autowired constructor(
+open class IamPermissionRoleExtService @Autowired constructor(
     open val iamManagerService: ManagerService,
     open val iamCacheService: IamCacheService,
     open val resourceService: BkResourceService,
@@ -88,10 +88,6 @@ class IamPermissionRoleExtService @Autowired constructor(
         val iamProjectId = iamCacheService.getProjectIamRelationId(projectId)
         // 校验操作人是否有项目分级管理员权限
         permissionGradeService.checkGradeManagerUser(userId, projectId)
-
-        // 校验用户组code, 默认分组已固定
-        checkRoleCode(groupInfo.code, groupInfo.defaultGroup!!)
-        checkRoleName(groupInfo.name, groupInfo.defaultGroup!!)
 
         val defaultGroup = groupInfo.defaultGroup!!
 
@@ -140,8 +136,7 @@ class IamPermissionRoleExtService @Autowired constructor(
     override fun updateGroupExt(userId: String, projectId: String, roleId: Int, groupInfo: ProjectRoleDTO) {
         val iamGroupId = groupService.getRelationId(roleId) ?: return
         permissionGradeService.checkGradeManagerUser(userId, projectId)
-        // 校验用户组名称
-        checkRoleName(groupInfo.name, false)
+
         val roleName = IamGroupUtils.buildIamGroup(groupInfo.projectName, groupInfo.name)
         val newGroupInfo = ManagerRoleGroup(
             roleName,
@@ -189,28 +184,6 @@ class IamPermissionRoleExtService @Autowired constructor(
         return emptyList()
     }
 
-    private fun checkRoleCode(code: String, defaultGroup: Boolean) {
-        // 校验用户组名称
-        if (defaultGroup) {
-            // 若为默认分组,需校验提供用户组是否在默认分组内。
-            if (!DefaultGroupType.contains(code)) {
-                // 不在默认分组内则直接报错
-                throw ErrorCodeException(
-                    errorCode = AuthMessageCode.DEFAULT_GROUP_ERROR,
-                    defaultMessage = MessageCodeUtil.getCodeLanMessage(AuthMessageCode.DEFAULT_GROUP_ERROR)
-                )
-            }
-        } else {
-            // 非默认分组,不能使用默认分组组名
-            if (DefaultGroupType.contains(code)) {
-                throw ErrorCodeException(
-                    errorCode = AuthMessageCode.UN_DEFAULT_GROUP_ERROR,
-                    defaultMessage = MessageCodeUtil.getCodeLanMessage(AuthMessageCode.UN_DEFAULT_GROUP_ERROR)
-                )
-            }
-        }
-    }
-
     override fun rolePermissionStrategyExt(
         userId: String,
         projectCode: String,
@@ -233,28 +206,6 @@ class IamPermissionRoleExtService @Autowired constructor(
             return false
         }
         return true
-    }
-
-    private fun checkRoleName(name: String, defaultGroup: Boolean) {
-        // 校验用户组名称
-        if (defaultGroup) {
-            // 若为默认分组,需校验提供用户组是否在默认分组内。
-            if (!DefaultGroupType.containsDisplayName(name)) {
-                // 不在默认分组内则直接报错
-                throw ErrorCodeException(
-                    errorCode = AuthMessageCode.DEFAULT_GROUP_ERROR,
-                    defaultMessage = MessageCodeUtil.getCodeLanMessage(AuthMessageCode.DEFAULT_GROUP_ERROR)
-                )
-            }
-        } else {
-            // 非默认分组,不能使用默认分组组名
-            if (DefaultGroupType.containsDisplayName(name)) {
-                throw ErrorCodeException(
-                    errorCode = AuthMessageCode.UN_DEFAULT_GROUP_ERROR,
-                    defaultMessage = MessageCodeUtil.getCodeLanMessage(AuthMessageCode.UN_DEFAULT_GROUP_ERROR)
-                )
-            }
-        }
     }
 
     private fun addDevelopPermission(roleId: Int, projectCode: String) {
@@ -287,7 +238,7 @@ class IamPermissionRoleExtService @Autowired constructor(
         addIamGroupPermission(actions, roleId, projectCode)
     }
 
-    private fun addIamGroupPermission (
+    private fun addIamGroupPermission(
         actions: Pair<List<String>, Map<String, List<String>>>,
         roleId: Int,
         projectCode: String
@@ -311,7 +262,8 @@ class IamPermissionRoleExtService @Autowired constructor(
                 defaultMessage = MessageCodeUtil.getCodeMessage(
                     messageCode = AuthMessageCode.STRATEGT_NAME_NOT_EXIST,
                     params = arrayOf(defaultGroup.value)
-                ))
+                )
+            )
         logger.info("getGroupStrategy ${strategyInfo.strategy}")
         return buildGroupAction(strategyInfo.strategy)
     }
@@ -424,15 +376,15 @@ class IamPermissionRoleExtService @Autowired constructor(
         // 如果是project相关的资源, 直接拼接action
         if (resource == AuthResourceType.PROJECT.value) {
             actionList.forEach { projectAction ->
-                projectStrategyList.add(resource + "_" + projectAction)
+                projectStrategyList.add(projectAction)
             }
         } else {
             actionList.forEach {
                 // 如果是非project资源。 若action是create,需挂在project下,因create相关的资源都是绑定在项目下。
                 if (it == AuthPermission.CREATE.value) {
-                    projectStrategyList.add(resource + "_" + it)
+                    projectStrategyList.add(it)
                 } else {
-                    resourceStrategyList.add(resource + "_" + it)
+                    resourceStrategyList.add(it)
                 }
             }
             resourceStrategyMap[resource] = resourceStrategyList

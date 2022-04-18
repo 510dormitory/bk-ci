@@ -25,13 +25,16 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.tencent.devops.auth.entity
+package com.tencent.devops.auth.service.simple
 
-data class GroupMemberInfo(
-    val userId: String,
-    val groupId: Int,
-    val groupType: Boolean,
-    val userType: Boolean,
-    val expiredDay: Long,
-    val projectCode: String
-)
+import com.tencent.devops.auth.service.ci.PermissionProjectService
+import com.tencent.devops.auth.service.ci.impl.AbsPermissionGradeServiceImpl
+import org.springframework.beans.factory.annotation.Autowired
+
+class SimplePermissionGraderServiceImpl @Autowired constructor(
+    val permissionProjectService: PermissionProjectService
+) : AbsPermissionGradeServiceImpl(permissionProjectService) {
+    override fun checkGradeManagerUser(userId: String, projectId: String) {
+        super.checkGradeManagerUser(userId, projectId)
+    }
+}

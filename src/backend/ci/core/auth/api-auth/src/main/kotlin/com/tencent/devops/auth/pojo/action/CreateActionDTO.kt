@@ -27,6 +27,7 @@
 
 package com.tencent.devops.auth.pojo.action
 
+import com.tencent.devops.auth.pojo.enum.ActionType
 import io.swagger.annotations.ApiModel
 import io.swagger.annotations.ApiModelProperty
 
@@ -43,5 +44,5 @@ data class CreateActionDTO(
     @ApiModelProperty("操作所属资源")
     val resourceId: String,
     @ApiModelProperty("操作类型")
-    val actionType: String
+    val actionType: ActionType
 )

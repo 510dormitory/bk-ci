@@ -25,18 +25,26 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.tencent.devops.auth.service.simple
+package com.tencent.devops.auth.pojo.enum
 
-import com.tencent.devops.auth.service.ci.PermissionProjectService
-import com.tencent.devops.auth.service.ci.impl.AbsPermissionGradeServiceImpl
-import com.tencent.devops.auth.service.iam.PermissionGradeService
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+enum class ActionType(val value: String) {
+    CREATE("create"),
+    EDIT("edit"),
+    DELETE("delete"),
+    VIEW("view"),
+    LIST("list"),
+    EXECUTE("execute"),
+    MANAGER("manager"),
+    USE("use");
 
-class SimplePermissionGraderServiceImpl @Autowired constructor(
-    val permissionProjectService: PermissionProjectService
-): AbsPermissionGradeServiceImpl(permissionProjectService) {
-    override fun checkGradeManagerUser(userId: String, projectId: String) {
-        super.checkGradeManagerUser(userId, projectId)
+    companion object {
+        fun get(action: String): ActionType {
+            values().forEach {
+                if (action == it.value) {
+                    return it
+                }
+            }
+            throw IllegalArgumentException("No enum for actionType $action")
+        }
     }
 }

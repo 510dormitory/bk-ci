@@ -31,7 +31,6 @@ import com.tencent.bk.sdk.iam.config.IamConfiguration
 import com.tencent.bk.sdk.iam.dto.ProviderConfigDTO
 import com.tencent.bk.sdk.iam.dto.SelectionDTO
 import com.tencent.bk.sdk.iam.dto.resource.ParentResourceDTO
-import com.tencent.bk.sdk.iam.dto.resource.ResourceDTO
 import com.tencent.bk.sdk.iam.dto.resource.ResourceTypeChainDTO
 import com.tencent.bk.sdk.iam.dto.resource.ResourceTypeDTO
 import com.tencent.bk.sdk.iam.exception.IamException
@@ -55,7 +54,7 @@ class IamBkResourceServiceImpl @Autowired constructor(
     val iamConfiguration: IamConfiguration,
     val resourceService: IamResourceService,
     val iamSystemService: SystemService
-): BkResourceServiceImpl(dslContext, resourceDao) {
+) : BkResourceServiceImpl(dslContext, resourceDao) {
 
     @Value("\${iam.selector.project:#{null}}")
     val projectCallbackPath = "/api/service/auth/resource/projects"
@@ -66,6 +65,7 @@ class IamBkResourceServiceImpl @Autowired constructor(
     @PostConstruct
     fun initResource() {
         try {
+            val systemId = iamConfiguration.systemId
             // 获取蓝盾本地所有资源
             val resourceInfos = resourceDao.getAllResource(dslContext) ?: return
 
@@ -154,13 +154,15 @@ class IamBkResourceServiceImpl @Autowired constructor(
             // 2. 资源视图
             buildIamResourceSelectorInstance(resourceInfo)
         } catch (iamException: IamException) {
-          logger.warn("updateExtSystem fail:$resource $iamException")
+            logger.warn("updateExtSystem fail:$resource $iamException")
         } catch (e: Exception) {
             logger.warn("updateExtSystem fail:$resource $e")
         }
     }
 
     private fun createIamResource(resource: CreateResourceDTO) {
+
+        val systemId = iamConfiguration.systemId
         val resourceInfo = ResourceTypeDTO()
         resourceInfo.id = resource.resourceId
         resourceInfo.name = resource.name
@@ -174,7 +176,6 @@ class IamBkResourceServiceImpl @Autowired constructor(
             resourceInfo.providerConfig = path
         } else {
             val projectResource = ParentResourceDTO()
-            // TODO: 系统id换回ci
             projectResource.systemId = systemId
             projectResource.id = AuthResourceType.PROJECT.value
             resourceInfo.parents = arrayListOf(projectResource)
@@ -190,6 +191,7 @@ class IamBkResourceServiceImpl @Autowired constructor(
     }
 
     private fun buildIamResourceSelectorInstance(resource: ResourceInfo) {
+        val systemId = iamConfiguration.systemId
         val selectInstance = resourceService.systemInstanceSelector
         val resourceSelectId = resource.resourceId + INSTANCELABLE
         val projectSelect = ResourceTypeChainDTO()
@@ -220,6 +222,7 @@ class IamBkResourceServiceImpl @Autowired constructor(
         resource: ResourceInfo,
         projectChain: ResourceTypeChainDTO
     ): SelectionDTO {
+        val systemId = iamConfiguration.systemId
         val resourceTypeChains = mutableListOf<ResourceTypeChainDTO>()
         // 所有的视图第一级都是project
         resourceTypeChains.add(projectChain)
@@ -240,8 +243,7 @@ class IamBkResourceServiceImpl @Autowired constructor(
     }
 
     companion object {
-        val systemId = "fitz_test"
-        val INSTANCELABLE = "_instance"
+        const val INSTANCELABLE = "_instance"
         val logger = LoggerFactory.getLogger(IamBkResourceServiceImpl::class.java)
     }
 }

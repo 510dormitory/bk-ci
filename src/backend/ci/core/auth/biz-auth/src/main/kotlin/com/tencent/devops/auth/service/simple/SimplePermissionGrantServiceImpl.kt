@@ -25,13 +25,18 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.tencent.devops.auth.entity
+package com.tencent.devops.auth.service.simple
 
-data class GroupMemberInfo(
-    val userId: String,
-    val groupId: Int,
-    val groupType: Boolean,
-    val userType: Boolean,
-    val expiredDay: Long,
-    val projectCode: String
-)
+import com.tencent.devops.auth.pojo.dto.GrantInstanceDTO
+import com.tencent.devops.auth.service.iam.PermissionGrantService
+import org.springframework.beans.factory.annotation.Autowired
+
+class SimplePermissionGrantServiceImpl @Autowired constructor(
+): PermissionGrantService {
+    override fun grantInstancePermission(
+        projectId: String,
+        grantInfo: GrantInstanceDTO,
+    ): Boolean {
+        TODO("Not yet implemented")
+    }
+}
