@@ -205,7 +205,7 @@ class AuthGroupMemberService @Autowired constructor(
             userIds = userIds,
             roleId = roleId
         ) ?: return false
-        return records.isNotEmpty
+        return records.size > 0
     }
 
     /**
