@@ -36,6 +36,7 @@ import javax.ws.rs.Consumes
 import javax.ws.rs.HeaderParam
 import javax.ws.rs.POST
 import javax.ws.rs.Path
+import javax.ws.rs.PathParam
 import javax.ws.rs.Produces
 import javax.ws.rs.QueryParam
 import javax.ws.rs.core.MediaType
@@ -46,14 +47,14 @@ import javax.ws.rs.core.MediaType
 @Consumes(MediaType.APPLICATION_JSON)
 interface ServiceRoleResource {
     @POST
-    @Path("/projectIds/{projectId}/manager")
+    @Path("/projectCodes/{projectCode}/manager")
     @ApiOperation("创建项目管理员")
     fun createProjectManager(
         @ApiParam(name = "用户名", required = true)
         @HeaderParam(AUTH_HEADER_USER_ID)
         userId: String,
         @ApiParam(name = "项目code", required = true)
-        @QueryParam("projectCode")
+        @PathParam("projectCode")
         projectCode: String,
         @ApiParam(name = "项目名称", required = true)
         @QueryParam("projectName")
