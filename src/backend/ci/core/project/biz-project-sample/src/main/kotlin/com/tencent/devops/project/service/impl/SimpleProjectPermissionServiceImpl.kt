@@ -29,15 +29,12 @@ package com.tencent.devops.project.service.impl
 
 import com.tencent.devops.auth.api.service.ServiceRoleMemberResource
 import com.tencent.devops.auth.api.service.ServiceRoleResource
-import com.tencent.devops.auth.pojo.MemberInfo
-import com.tencent.devops.auth.pojo.dto.ProjectRoleDTO
 import com.tencent.devops.auth.pojo.dto.RoleMemberDTO
 import com.tencent.devops.auth.pojo.enum.UserType
 import com.tencent.devops.common.auth.api.AuthPermission
 import com.tencent.devops.common.auth.api.AuthProjectApi
 import com.tencent.devops.common.auth.api.AuthResourceApi
 import com.tencent.devops.common.auth.api.AuthResourceType
-import com.tencent.devops.common.auth.api.pojo.DefaultGroupType
 import com.tencent.devops.common.auth.api.pojo.ResourceRegisterInfo
 import com.tencent.devops.common.auth.code.BK_DEVOPS_SCOPE
 import com.tencent.devops.common.auth.code.ProjectAuthServiceCode
@@ -123,8 +120,7 @@ class SimpleProjectPermissionServiceImpl @Autowired constructor(
     ): String {
         val roleId = client.get(ServiceRoleResource::class).createProjectManager(
             userId = userId,
-            projectCode = resourceRegisterInfo.resourceCode,
-            projectName = resourceRegisterInfo.resourceName
+            projectCode = resourceRegisterInfo.resourceCode
         ).data
         val member = RoleMemberDTO(
             type = UserType.USER,

@@ -113,7 +113,6 @@ open class IamPermissionRoleExtService @Autowired constructor(
             // 默认分组需要分配默认权限
             if (defaultGroup) {
                 when (groupInfo.code) {
-                    BkAuthGroup.MANAGER.value -> addManager(iamRoleId, projectCode)
                     BkAuthGroup.DEVELOPER.value -> addDevelopPermission(iamRoleId, projectCode)
                     BkAuthGroup.MAINTAINER.value -> addMaintainerPermission(iamRoleId, projectCode)
                     BkAuthGroup.TESTER.value -> addTestPermission(iamRoleId, projectCode)
@@ -210,10 +209,6 @@ open class IamPermissionRoleExtService @Autowired constructor(
             return false
         }
         return true
-    }
-
-    private fun addManager(roleId: Int, projectCode: String) {
-        addIamGroupAction(roleId, projectCode, DefaultGroupType.MANAGER)
     }
 
     private fun addDevelopPermission(roleId: Int, projectCode: String) {

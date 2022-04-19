@@ -48,8 +48,7 @@ interface PermissionRoleService {
 
     fun createProjectManager(
         userId: String,
-        projectId: String,
-        projectName: String
+        projectId: String
     ): Int
 
     fun getPermissionRole(projectId: String): List<GroupInfoVo>

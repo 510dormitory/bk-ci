@@ -37,15 +37,10 @@ import org.springframework.beans.factory.annotation.Autowired
 class ServiceRoleResourceImpl @Autowired constructor(
     val permissionRoleService: PermissionRoleService
 ): ServiceRoleResource {
-    override fun createProjectManager(
-        userId: String,
-        projectCode: String,
-        projectName: String
-    ): Result<Int> {
+    override fun createProjectManager(userId: String, projectCode: String): Result<String> {
         return Result(permissionRoleService.createProjectManager(
-            userId,
-            projectCode,
-            projectName
+            userId = userId,
+            projectId = projectCode
         ))
     }
 }

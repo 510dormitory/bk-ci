@@ -106,18 +106,15 @@ abstract class AbsPermissionRoleServiceImpl @Autowired constructor(
         return roleId
     }
 
-    override fun createProjectManager(userId: String, projectId: String, projectName: String): Int {
-
-        // 判断项目是否已经存在管理员组
-        val managerGroup = groupService.getGroupByCode(projectId, DefaultGroupType.MANAGER.name)
-        if (managerGroup != null) {
-            logger.info("$projectId manager group exsit")
+    override fun createProjectManager(userId: String, projectId: String): Int {
+        if (groupService.getGroupByCode(projectId, DefaultGroupType.MANAGER.value) != null) {
+            logger.warn("$projectId ${DefaultGroupType.MANAGER.value} is exist")
             throw ErrorCodeException(
                 errorCode = AuthMessageCode.GROUP_EXIST,
                 defaultMessage = MessageCodeUtil.getCodeLanMessage(AuthMessageCode.GROUP_EXIST)
             )
         }
-        val roleId = groupService.createGroup(
+        return groupService.createGroup(
             userId = userId,
             projectCode = projectId,
             groupInfo = GroupDTO(
@@ -129,23 +126,6 @@ abstract class AbsPermissionRoleServiceImpl @Autowired constructor(
                 desc = ""
             )
         )
-        groupCreateExt(
-            roleId = roleId,
-            userId = userId,
-            projectId = projectId,
-            projectCode = projectId,
-            groupInfo = ProjectRoleDTO(
-                code = DefaultGroupType.MANAGER.name,
-                name = DefaultGroupType.MANAGER.displayName,
-                description = "",
-                defaultGroup = true,
-                displayName = DefaultGroupType.MANAGER.displayName,
-                projectName = projectName,
-                actionMap = null
-            ),
-            checkManager = false
-        )
-        return roleId
     }
 
     override fun updatePermissionRole(

@@ -27,6 +27,7 @@
 
 package com.tencent.devops.auth.api.service
 
+import com.tencent.devops.auth.pojo.dto.ProjectRoleDTO
 import com.tencent.devops.common.api.auth.AUTH_HEADER_USER_ID
 import com.tencent.devops.common.api.pojo.Result
 import io.swagger.annotations.Api
@@ -36,8 +37,8 @@ import javax.ws.rs.Consumes
 import javax.ws.rs.HeaderParam
 import javax.ws.rs.POST
 import javax.ws.rs.Path
+import javax.ws.rs.PathParam
 import javax.ws.rs.Produces
-import javax.ws.rs.QueryParam
 import javax.ws.rs.core.MediaType
 
 @Api(tags = ["SERVICE_PROJECT_ROLE"], description = "项目-用户组")
@@ -46,17 +47,14 @@ import javax.ws.rs.core.MediaType
 @Consumes(MediaType.APPLICATION_JSON)
 interface ServiceRoleResource {
     @POST
-    @Path("/projectIds/{projectId}/manager")
-    @ApiOperation("创建项目管理员")
+    @Path("/projectCodes/{projectCode}/manager")
+    @ApiOperation("项目下添加指定组")
     fun createProjectManager(
         @ApiParam(name = "用户名", required = true)
         @HeaderParam(AUTH_HEADER_USER_ID)
         userId: String,
-        @ApiParam(name = "项目code", required = true)
-        @QueryParam("projectCode")
-        projectCode: String,
-        @ApiParam(name = "项目名称", required = true)
-        @QueryParam("projectName")
-        projectName: String
-    ): Result<Int>
+        @ApiParam(name = "项目标识", required = true)
+        @PathParam("projectCode")
+        projectCode: String
+    ): Result<String>
 }
