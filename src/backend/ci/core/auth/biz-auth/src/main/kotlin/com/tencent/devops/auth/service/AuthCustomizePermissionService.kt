@@ -46,7 +46,7 @@ class AuthCustomizePermissionService @Autowired constructor(
     ) {
         authGroupCustomizePermissionDao.createGroupPermission(
             dslContext = dslContext,
-            groupId = groupId.toString(),
+            groupId = groupId,
             resourceType = resourceType,
             actions = actions.joinToString { "," },
             userId = userId

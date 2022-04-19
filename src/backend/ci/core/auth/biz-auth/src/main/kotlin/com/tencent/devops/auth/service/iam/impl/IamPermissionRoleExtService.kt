@@ -43,6 +43,7 @@ import com.tencent.devops.auth.dao.AuthGroupDao
 import com.tencent.devops.auth.pojo.DefaultGroup
 import com.tencent.devops.auth.pojo.dto.ProjectRoleDTO
 import com.tencent.devops.auth.pojo.vo.GroupInfoVo
+import com.tencent.devops.auth.service.AuthCustomizePermissionService
 import com.tencent.devops.auth.service.AuthGroupService
 import com.tencent.devops.auth.service.StrategyService
 import com.tencent.devops.auth.service.action.ActionService
@@ -75,8 +76,14 @@ open class IamPermissionRoleExtService @Autowired constructor(
     private val groupDao: AuthGroupDao,
     private val dslContext: DSLContext,
     private val client: Client,
-    private val strategyService: StrategyService
-) : AbsPermissionRoleServiceImpl(groupService, resourceService, actionsService) {
+    private val strategyService: StrategyService,
+    private val authCustomizePermissionService: AuthCustomizePermissionService
+) : AbsPermissionRoleServiceImpl(
+    groupService = groupService,
+    resourceService = resourceService,
+    actionsService = actionsService,
+    authCustomizePermissionService = authCustomizePermissionService
+) {
 
     override fun groupCreateExt(
         roleId: Int,

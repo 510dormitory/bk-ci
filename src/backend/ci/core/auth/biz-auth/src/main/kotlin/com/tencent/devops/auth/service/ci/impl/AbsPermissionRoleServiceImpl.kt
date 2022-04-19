@@ -47,7 +47,8 @@ import org.springframework.beans.factory.annotation.Autowired
 abstract class AbsPermissionRoleServiceImpl @Autowired constructor(
     private val groupService: AuthGroupService,
     private val resourceService: BkResourceService,
-    private val actionsService: ActionService
+    private val actionsService: ActionService,
+    private val authCustomizePermissionService: AuthCustomizePermissionService
 ) : PermissionRoleService {
     override fun createPermissionRole(
         userId: String,
@@ -187,6 +188,14 @@ abstract class AbsPermissionRoleServiceImpl @Autowired constructor(
                     defaultMessage = MessageCodeUtil.getCodeLanMessage(AuthMessageCode.PERMISSION_MODEL_CHECK_FAIL)
                 )
             }
+        }
+        permissionStrategy.forEach { resource, actions ->
+            authCustomizePermissionService.createCustomizePermission(
+                userId = userId,
+                groupId = roleId,
+                resourceType = resource,
+                actions = actions
+            )
         }
         return rolePermissionStrategyExt(userId, projectCode, roleId, permissionStrategy)
     }

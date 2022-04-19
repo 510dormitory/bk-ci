@@ -48,7 +48,12 @@ class SimplePermissionRoleService @Autowired constructor(
     private val resourceService: BkResourceService,
     private val actionsService: ActionService,
     private val authCustomizePermissionService: AuthCustomizePermissionService
-) : AbsPermissionRoleServiceImpl(groupService, resourceService, actionsService) {
+) : AbsPermissionRoleServiceImpl(
+    groupService = groupService,
+    resourceService = resourceService,
+    actionsService = actionsService,
+    authCustomizePermissionService = authCustomizePermissionService
+) {
 
 
     override fun groupCreateExt(
@@ -97,14 +102,6 @@ class SimplePermissionRoleService @Autowired constructor(
         roleId: Int,
         permissionStrategy: Map<String, List<String>>
     ): Boolean {
-        permissionStrategy.forEach { resource, actions ->
-            authCustomizePermissionService.createCustomizePermission(
-                userId = userId,
-                groupId = roleId,
-                resourceType = resource,
-                actions = actions
-            )
-        }
         return true
     }
 

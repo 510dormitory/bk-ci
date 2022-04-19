@@ -38,23 +38,25 @@ import java.time.LocalDateTime
 class AuthGroupCustomizePermissionDao {
     fun createGroupPermission(
         dslContext: DSLContext,
-        groupId: String,
+        groupId: Int,
         resourceType: String,
         actions: String,
         userId: String
     ): Int {
         with(TAuthCustomizeGroupPermission.T_AUTH_CUSTOMIZE_GROUP_PERMISSION) {
-            return dslContext.insertInto(this).values(
+            return dslContext.insertInto(
                 this,
                 GROUP_ID,
                 RESOURCE_TYPE,
                 ACTION_ID,
+                DELETE,
                 CREATE_TIME,
                 CREATE_USER
             ).values(
                 groupId,
                 resourceType,
                 actions,
+                false,
                 LocalDateTime.now(),
                 userId
             ).execute()
@@ -84,7 +86,9 @@ class AuthGroupCustomizePermissionDao {
         groupId: Int
     ): Result<TAuthCustomizeGroupPermissionRecord>? {
         with(TAuthCustomizeGroupPermission.T_AUTH_CUSTOMIZE_GROUP_PERMISSION) {
-            return dslContext.selectFrom(this).where(GROUP_ID.eq(groupId)).fetch()
+            return dslContext.selectFrom(this)
+                .where(GROUP_ID.eq(groupId).and(DELETE.eq(false)))
+                .fetch()
         }
     }
 }
