@@ -25,43 +25,36 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.tencent.devops.auth.service.ci
+package com.tencent.devops.auth.resources.service
 
-import com.tencent.devops.auth.pojo.DefaultGroup
-import com.tencent.devops.auth.pojo.dto.ProjectRoleDTO
-import com.tencent.devops.auth.pojo.vo.GroupInfoVo
+import com.tencent.devops.auth.api.service.ServiceRoleMemberResource
+import com.tencent.devops.auth.pojo.dto.RoleMemberDTO
+import com.tencent.devops.auth.service.ci.PermissionRoleMemberService
+import com.tencent.devops.common.api.pojo.Result
+import com.tencent.devops.common.web.RestResource
+import org.springframework.beans.factory.annotation.Autowired
 
-interface PermissionRoleService {
-
-    fun updatePermissionRole(
+@RestResource
+class ServiceRoleMemberResourceImpl @Autowired constructor(
+    val permissionRoleMemberService: PermissionRoleMemberService
+): ServiceRoleMemberResource {
+    override fun createRoleMember(
         userId: String,
         projectId: String,
         roleId: Int,
-        groupInfo: ProjectRoleDTO
-    )
-    fun createPermissionRole(
-        userId: String,
-        projectId: String,
-        projectCode: String,
-        groupInfo: ProjectRoleDTO
-    ): Int
-
-    fun createProjectManager(
-        userId: String,
-        projectId: String,
-        projectName: String
-    ): Int
-
-    fun getPermissionRole(projectId: String): List<GroupInfoVo>
-
-    fun deletePermissionRole(userId: String, projectId: String, roleId: Int)
-
-    fun getDefaultRole(): List<DefaultGroup>
-
-    fun rolePermissionStrategy(
-        userId: String,
-        projectCode: String,
-        roleId: Int,
-        permissionStrategy: Map<String, List<String>>
-    ): Boolean
+        managerGroup: Boolean,
+        members: List<RoleMemberDTO>,
+        expiredDay: Long?,
+    ): Result<Boolean> {
+        permissionRoleMemberService.createRoleMember(
+            userId = userId,
+            projectId = projectId,
+            roleId = roleId,
+            members = members,
+            managerGroup = managerGroup,
+            checkAGradeManager = true,
+            expiredDay = expiredDay ?: 365
+        )
+        return Result(true)
+    }
 }

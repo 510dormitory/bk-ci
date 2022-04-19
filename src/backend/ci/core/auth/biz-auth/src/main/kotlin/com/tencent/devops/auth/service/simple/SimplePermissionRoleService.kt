@@ -50,12 +50,14 @@ class SimplePermissionRoleService @Autowired constructor(
     private val authCustomizePermissionService: AuthCustomizePermissionService
 ) : AbsPermissionRoleServiceImpl(groupService, resourceService, actionsService) {
 
+
     override fun groupCreateExt(
         roleId: Int,
         userId: String,
         projectId: String,
         projectCode: String,
-        groupInfo: ProjectRoleDTO
+        groupInfo: ProjectRoleDTO,
+        checkManager: Boolean
     ) {
         // 默认用户组权限模版统一存在Strategy表内，无需建立用户组与权限的映射数据
         // 用户自定义用户组需将数据存入Customize表内建立用户组与权限的映射关系

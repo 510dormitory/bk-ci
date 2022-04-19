@@ -90,7 +90,8 @@ abstract class AbsPermissionRoleServiceImpl @Autowired constructor(
                 userId = userId,
                 projectId = projectId,
                 projectCode = projectCode,
-                groupInfo = groupInfo
+                groupInfo = groupInfo,
+                checkManager = true
             )
             logger.info("create ext group success $projectCode $roleId")
         } catch (iamException: IamException) {
@@ -102,6 +103,48 @@ abstract class AbsPermissionRoleServiceImpl @Autowired constructor(
             groupService.deleteGroup(roleId, false)
             throw ParamBlankException("create project role fail")
         }
+        return roleId
+    }
+
+    override fun createProjectManager(userId: String, projectId: String, projectName: String): Int {
+
+        // 判断项目是否已经存在管理员组
+        val managerGroup = groupService.getGroupByCode(projectId, DefaultGroupType.MANAGER.name)
+        if (managerGroup != null) {
+            logger.info("$projectId manager group exsit")
+            throw ErrorCodeException(
+                errorCode = AuthMessageCode.GROUP_EXIST,
+                defaultMessage = MessageCodeUtil.getCodeLanMessage(AuthMessageCode.GROUP_EXIST)
+            )
+        }
+        val roleId = groupService.createGroup(
+            userId = userId,
+            projectCode = projectId,
+            groupInfo = GroupDTO(
+                groupCode = DefaultGroupType.MANAGER.value,
+                groupType = true,
+                groupName = DefaultGroupType.MANAGER.displayName,
+                displayName = DefaultGroupType.MANAGER.displayName,
+                relationId = null,
+                desc = ""
+            )
+        )
+        groupCreateExt(
+            roleId = roleId,
+            userId = userId,
+            projectId = projectId,
+            projectCode = projectId,
+            groupInfo = ProjectRoleDTO(
+                code = DefaultGroupType.MANAGER.name,
+                name = DefaultGroupType.MANAGER.displayName,
+                description = "",
+                defaultGroup = true,
+                displayName = DefaultGroupType.MANAGER.displayName,
+                projectName = projectName,
+                actionMap = null
+            ),
+            checkManager = false
+        )
         return roleId
     }
 
@@ -173,7 +216,8 @@ abstract class AbsPermissionRoleServiceImpl @Autowired constructor(
         userId: String,
         projectId: String,
         projectCode: String,
-        groupInfo: ProjectRoleDTO
+        groupInfo: ProjectRoleDTO,
+        checkManager: Boolean
     )
 
     abstract fun updateGroupExt(

@@ -38,7 +38,7 @@ import com.tencent.devops.project.listener.ProjectEventListener
 import com.tencent.devops.project.listener.SampleProjectEventListener
 import com.tencent.devops.project.service.ProjectPermissionService
 import com.tencent.devops.project.service.impl.BluekingProjectPermissionServiceImpl
-import com.tencent.devops.project.service.impl.ProjectPermissionServiceImpl
+import com.tencent.devops.project.service.impl.SimpleProjectPermissionServiceImpl
 import com.tencent.devops.project.service.impl.StreamProjectPermissionServiceImpl
 import com.tencent.devops.project.service.impl.V3ProjectPermissionServiceImpl
 import org.jooq.DSLContext
@@ -79,13 +79,15 @@ class ProjectConfiguration {
         projectDao: ProjectDao,
         authProjectApi: AuthProjectApi,
         authResourceApi: AuthResourceApi,
-        projectAuthServiceCode: ProjectAuthServiceCode
-    ): ProjectPermissionService = ProjectPermissionServiceImpl(
+        projectAuthServiceCode: ProjectAuthServiceCode,
+        client: Client
+    ): ProjectPermissionService = SimpleProjectPermissionServiceImpl(
         dslContext = dslContext,
         projectDao = projectDao,
         authProjectApi = authProjectApi,
         authResourceApi = authResourceApi,
-        projectAuthServiceCode = projectAuthServiceCode
+        projectAuthServiceCode = projectAuthServiceCode,
+        client = client
     )
 
     @Bean

@@ -25,43 +25,38 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.tencent.devops.auth.service.ci
+package com.tencent.devops.auth.api.service
 
-import com.tencent.devops.auth.pojo.DefaultGroup
-import com.tencent.devops.auth.pojo.dto.ProjectRoleDTO
-import com.tencent.devops.auth.pojo.vo.GroupInfoVo
+import com.tencent.devops.common.api.auth.AUTH_HEADER_USER_ID
+import com.tencent.devops.common.api.pojo.Result
+import io.swagger.annotations.Api
+import io.swagger.annotations.ApiOperation
+import io.swagger.annotations.ApiParam
+import javax.ws.rs.Consumes
+import javax.ws.rs.HeaderParam
+import javax.ws.rs.POST
+import javax.ws.rs.Path
+import javax.ws.rs.Produces
+import javax.ws.rs.QueryParam
+import javax.ws.rs.core.MediaType
 
-interface PermissionRoleService {
-
-    fun updatePermissionRole(
-        userId: String,
-        projectId: String,
-        roleId: Int,
-        groupInfo: ProjectRoleDTO
-    )
-    fun createPermissionRole(
-        userId: String,
-        projectId: String,
-        projectCode: String,
-        groupInfo: ProjectRoleDTO
-    ): Int
-
+@Api(tags = ["SERVICE_PROJECT_ROLE"], description = "项目-用户组")
+@Path("/service/project/roles")
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
+interface ServiceRoleResource {
+    @POST
+    @Path("/projectIds/{projectId}/manager")
+    @ApiOperation("创建项目管理员")
     fun createProjectManager(
+        @ApiParam(name = "用户名", required = true)
+        @HeaderParam(AUTH_HEADER_USER_ID)
         userId: String,
-        projectId: String,
-        projectName: String
-    ): Int
-
-    fun getPermissionRole(projectId: String): List<GroupInfoVo>
-
-    fun deletePermissionRole(userId: String, projectId: String, roleId: Int)
-
-    fun getDefaultRole(): List<DefaultGroup>
-
-    fun rolePermissionStrategy(
-        userId: String,
+        @ApiParam(name = "项目code", required = true)
+        @QueryParam("projectCode")
         projectCode: String,
-        roleId: Int,
-        permissionStrategy: Map<String, List<String>>
-    ): Boolean
+        @ApiParam(name = "项目名称", required = true)
+        @QueryParam("projectName")
+        projectName: String
+    ): Result<Int>
 }

@@ -27,25 +27,34 @@
 
 package com.tencent.devops.project.service.impl
 
+import com.tencent.devops.auth.api.service.ServiceRoleMemberResource
+import com.tencent.devops.auth.api.service.ServiceRoleResource
+import com.tencent.devops.auth.pojo.MemberInfo
+import com.tencent.devops.auth.pojo.dto.ProjectRoleDTO
+import com.tencent.devops.auth.pojo.dto.RoleMemberDTO
+import com.tencent.devops.auth.pojo.enum.UserType
 import com.tencent.devops.common.auth.api.AuthPermission
 import com.tencent.devops.common.auth.api.AuthProjectApi
 import com.tencent.devops.common.auth.api.AuthResourceApi
 import com.tencent.devops.common.auth.api.AuthResourceType
+import com.tencent.devops.common.auth.api.pojo.DefaultGroupType
 import com.tencent.devops.common.auth.api.pojo.ResourceRegisterInfo
 import com.tencent.devops.common.auth.code.BK_DEVOPS_SCOPE
 import com.tencent.devops.common.auth.code.ProjectAuthServiceCode
+import com.tencent.devops.common.client.Client
 import com.tencent.devops.project.dao.ProjectDao
 import com.tencent.devops.project.pojo.user.UserDeptDetail
 import com.tencent.devops.project.service.ProjectPermissionService
 import org.jooq.DSLContext
 import org.springframework.beans.factory.annotation.Autowired
 
-class ProjectPermissionServiceImpl @Autowired constructor(
+class SimpleProjectPermissionServiceImpl @Autowired constructor(
     private val dslContext: DSLContext,
     private val projectDao: ProjectDao,
     private val authProjectApi: AuthProjectApi,
     private val authResourceApi: AuthResourceApi,
-    private val projectAuthServiceCode: ProjectAuthServiceCode
+    private val projectAuthServiceCode: ProjectAuthServiceCode,
+    private val client: Client
 ) : ProjectPermissionService {
 
     override fun verifyUserProjectPermission(accessToken: String?, projectCode: String, userId: String): Boolean {
@@ -101,22 +110,35 @@ class ProjectPermissionServiceImpl @Autowired constructor(
         )
     }
 
+    /**
+     * 创建项目权限步骤：
+     * 1. 创建项目下的管理员用户组
+     * 2. 把创建人添加到管理员组
+     */
     override fun createResources(
         userId: String,
         accessToken: String?,
         resourceRegisterInfo: ResourceRegisterInfo,
         userDeptDetail: UserDeptDetail?
     ): String {
-        val projectList = mutableListOf<ResourceRegisterInfo>()
-        projectList.add(resourceRegisterInfo)
-        authResourceApi.batchCreateResource(
-            serviceCode = projectAuthServiceCode,
-            resourceType = AuthResourceType.PROJECT,
-            resourceList = projectList,
-            projectCode = BK_DEVOPS_SCOPE,
-            user = userId
+        val roleId = client.get(ServiceRoleResource::class).createProjectManager(
+            userId = userId,
+            projectCode = resourceRegisterInfo.resourceCode,
+            projectName = resourceRegisterInfo.resourceName
+        ).data
+        val member = RoleMemberDTO(
+            type = UserType.USER,
+            id = userId
         )
-        return ""
+        client.get(ServiceRoleMemberResource::class).createRoleMember(
+            userId = userId,
+            roleId = roleId!!.toInt(),
+            projectId = resourceRegisterInfo.resourceCode,
+            managerGroup = true,
+            members = arrayOf(member).toList(),
+            expiredDay = 365
+        )
+        return roleId.toString()
     }
 
     override fun verifyUserProjectPermission(

@@ -83,11 +83,14 @@ open class IamPermissionRoleExtService @Autowired constructor(
         userId: String,
         projectId: String,
         projectCode: String,
-        groupInfo: ProjectRoleDTO
+        groupInfo: ProjectRoleDTO,
+        checkManager: Boolean
     ) {
         val iamProjectId = iamCacheService.getProjectIamRelationId(projectId)
-        // 校验操作人是否有项目分级管理员权限
-        permissionGradeService.checkGradeManagerUser(userId, projectId)
+        if (checkManager) {
+            // 校验操作人是否有项目分级管理员权限
+            permissionGradeService.checkGradeManagerUser(userId, projectId)
+        }
 
         val defaultGroup = groupInfo.defaultGroup!!
 
@@ -110,6 +113,7 @@ open class IamPermissionRoleExtService @Autowired constructor(
             // 默认分组需要分配默认权限
             if (defaultGroup) {
                 when (groupInfo.code) {
+                    BkAuthGroup.MANAGER.value -> addManager(iamRoleId, projectCode)
                     BkAuthGroup.DEVELOPER.value -> addDevelopPermission(iamRoleId, projectCode)
                     BkAuthGroup.MAINTAINER.value -> addMaintainerPermission(iamRoleId, projectCode)
                     BkAuthGroup.TESTER.value -> addTestPermission(iamRoleId, projectCode)
@@ -206,6 +210,10 @@ open class IamPermissionRoleExtService @Autowired constructor(
             return false
         }
         return true
+    }
+
+    private fun addManager(roleId: Int, projectCode: String) {
+        addIamGroupAction(roleId, projectCode, DefaultGroupType.MANAGER)
     }
 
     private fun addDevelopPermission(roleId: Int, projectCode: String) {

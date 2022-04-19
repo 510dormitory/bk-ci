@@ -25,43 +25,27 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.tencent.devops.auth.service.ci
+package com.tencent.devops.auth.resources.service
 
-import com.tencent.devops.auth.pojo.DefaultGroup
-import com.tencent.devops.auth.pojo.dto.ProjectRoleDTO
-import com.tencent.devops.auth.pojo.vo.GroupInfoVo
+import com.tencent.devops.auth.api.service.ServiceRoleResource
+import com.tencent.devops.auth.service.ci.PermissionRoleService
+import com.tencent.devops.common.api.pojo.Result
+import com.tencent.devops.common.web.RestResource
+import org.springframework.beans.factory.annotation.Autowired
 
-interface PermissionRoleService {
-
-    fun updatePermissionRole(
+@RestResource
+class ServiceRoleResourceImpl @Autowired constructor(
+    val permissionRoleService: PermissionRoleService
+): ServiceRoleResource {
+    override fun createProjectManager(
         userId: String,
-        projectId: String,
-        roleId: Int,
-        groupInfo: ProjectRoleDTO
-    )
-    fun createPermissionRole(
-        userId: String,
-        projectId: String,
         projectCode: String,
-        groupInfo: ProjectRoleDTO
-    ): Int
-
-    fun createProjectManager(
-        userId: String,
-        projectId: String,
         projectName: String
-    ): Int
-
-    fun getPermissionRole(projectId: String): List<GroupInfoVo>
-
-    fun deletePermissionRole(userId: String, projectId: String, roleId: Int)
-
-    fun getDefaultRole(): List<DefaultGroup>
-
-    fun rolePermissionStrategy(
-        userId: String,
-        projectCode: String,
-        roleId: Int,
-        permissionStrategy: Map<String, List<String>>
-    ): Boolean
+    ): Result<Int> {
+        return Result(permissionRoleService.createProjectManager(
+            userId,
+            projectCode,
+            projectName
+        ))
+    }
 }
