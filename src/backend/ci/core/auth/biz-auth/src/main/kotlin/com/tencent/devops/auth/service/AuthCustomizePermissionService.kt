@@ -42,13 +42,13 @@ class AuthCustomizePermissionService @Autowired constructor(
         userId: String,
         groupId: Int,
         resourceType: String,
-        actions: List<String>
+        actions: String
     ) {
         authGroupCustomizePermissionDao.createGroupPermission(
             dslContext = dslContext,
             groupId = groupId,
             resourceType = resourceType,
-            actions = actions.joinToString { "," },
+            actions = actions,
             userId = userId
         )
     }

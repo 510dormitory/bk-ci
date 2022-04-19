@@ -190,11 +190,13 @@ abstract class AbsPermissionRoleServiceImpl @Autowired constructor(
             }
         }
         permissionStrategy.forEach { resource, actions ->
+            val action = actions.joinToString(",")
+            logger.info("$projectCode $roleId $resource $actions $action set permission")
             authCustomizePermissionService.createCustomizePermission(
                 userId = userId,
                 groupId = roleId,
                 resourceType = resource,
-                actions = actions
+                actions = action
             )
         }
         return rolePermissionStrategyExt(userId, projectCode, roleId, permissionStrategy)

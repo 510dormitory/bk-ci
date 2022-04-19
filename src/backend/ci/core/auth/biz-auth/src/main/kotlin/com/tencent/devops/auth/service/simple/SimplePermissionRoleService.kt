@@ -74,7 +74,7 @@ class SimplePermissionRoleService @Autowired constructor(
                 userId = userId,
                 groupId = roleId,
                 resourceType = resource,
-                actions = actions
+                actions = actions.joinToString(",")
             )
         }
     }
