@@ -101,10 +101,10 @@ class UserProjectRoleResourceImpl @Autowired constructor(
     ): Result<Boolean> {
         return Result(
             permissionRoleService.rolePermissionStrategy(
-                userId,
-                projectCode,
-                roleId,
-                strategy
+                userId = userId,
+                projectCode = projectCode,
+                roleId = roleId,
+                permissionStrategy = strategy
             )
         )
     }
