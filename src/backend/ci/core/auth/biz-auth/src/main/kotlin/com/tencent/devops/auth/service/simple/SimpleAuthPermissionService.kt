@@ -34,7 +34,6 @@ import com.tencent.devops.auth.service.StrategyService
 import com.tencent.devops.auth.service.action.ActionService
 import com.tencent.devops.auth.service.ci.PermissionService
 import com.tencent.devops.common.auth.api.AuthPermission
-import com.tencent.devops.common.auth.utils.ActionTypeUtils
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -83,10 +82,10 @@ class SimpleAuthPermissionService @Autowired constructor(
         // 默认用户组权限校验
         if (defaultGroup.isNotEmpty()) {
             defaultGroup.forEach {
-                val groupCode = groupService.getGroupCode(it)?.groupCode ?: return@forEach
+                val groupCode = groupService.getGroupById(it)?.groupCode ?: return@forEach
                 val checkDefaultPermission = strategyService.checkDefaultStrategy(
                     strategyName = groupCode,
-                    resourceType = resourceType!!,
+                    resourceType = resourceType,
                     actionId = checkAction
                 )
                 if (checkDefaultPermission) {
@@ -100,7 +99,7 @@ class SimpleAuthPermissionService @Autowired constructor(
                 val checkPermission = authCustomizePermissionService.checkCustomizePermission(
                     groupId = it,
                     action = checkAction,
-                    resourceType = resourceType!!
+                    resourceType = resourceType
                 )
                 if (checkPermission) {
                     return true

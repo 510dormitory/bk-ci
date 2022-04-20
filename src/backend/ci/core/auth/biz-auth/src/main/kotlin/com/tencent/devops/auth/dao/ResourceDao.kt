@@ -35,6 +35,7 @@ import com.tencent.devops.common.api.util.DateTimeUtil
 import com.tencent.devops.model.auth.tables.TAuthResource
 import com.tencent.devops.model.auth.tables.records.TAuthResourceRecord
 import org.jooq.DSLContext
+import org.jooq.Record1
 import org.jooq.Result
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
@@ -88,6 +89,8 @@ class ResourceDao {
                 .set(ENGLISHDESC, resourceInfo.englishDes)
                 .set(ENGLISHNAME, resourceInfo.englishName)
                 .set(SYSTEM, resourceInfo.system.name)
+                .set(UPDATER, userId)
+                .set(UPDATETIME, LocalDateTime.now())
                 .where(RESOURCETYPE.eq(resourceId)).execute()
         }
     }
@@ -100,6 +103,14 @@ class ResourceDao {
             val record = dslContext.selectFrom(this)
                 .where(RESOURCETYPE.eq(resourceId).and(DELETE.eq(false))).fetchAny()
             return convert(record)
+        }
+    }
+
+    fun getParentResource(
+        dslContext: DSLContext
+    ): MutableList<String> {
+        with(TAuthResource.T_AUTH_RESOURCE) {
+            return dslContext.select(RESOURCETYPE).where(DELETE.eq(false).and(PARENT.isNull)).fetch(RESOURCETYPE)
         }
     }
 

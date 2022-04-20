@@ -56,12 +56,12 @@ abstract class AbsPermissionRoleServiceImpl @Autowired constructor(
         projectCode: String,
         groupInfo: ProjectRoleDTO
     ): Int {
-        var groupType = groupInfo.defaultGroup
-        var groupName = ""
-        var displayName = ""
+        var groupType: Boolean?
+        var groupName: String
+        var displayName: String
         if (!DefaultGroupType.contains(groupInfo.code)) {
             groupType = false
-            groupName = groupInfo.name ?: ""
+            groupName = groupInfo.name
             displayName = groupInfo.displayName ?: groupInfo.name
         } else {
             groupType = true
@@ -159,7 +159,7 @@ abstract class AbsPermissionRoleServiceImpl @Autowired constructor(
         roleId: Int,
         permissionStrategy: Map<String, List<String>>
     ): Boolean {
-        val groupInfo = groupService.getGroupCode(roleId) ?: throw ErrorCodeException(
+        val groupInfo = groupService.getGroupById(roleId) ?: throw ErrorCodeException(
             errorCode = AuthMessageCode.GROUP_NOT_EXIST,
             defaultMessage = MessageCodeUtil.getCodeLanMessage(AuthMessageCode.GROUP_NOT_EXIST)
         )
@@ -237,6 +237,7 @@ abstract class AbsPermissionRoleServiceImpl @Autowired constructor(
         if (defaultGroup) {
             // 若为默认分组,需校验提供用户组是否在默认分组内。
             if (!DefaultGroupType.contains(code)) {
+                logger.warn("create default group but name is error code $code")
                 // 不在默认分组内则直接报错
                 throw ErrorCodeException(
                     errorCode = AuthMessageCode.DEFAULT_GROUP_ERROR,
@@ -246,6 +247,7 @@ abstract class AbsPermissionRoleServiceImpl @Autowired constructor(
         } else {
             // 非默认分组,不能使用默认分组组名
             if (DefaultGroupType.contains(code)) {
+                logger.warn("create customize group code is equal default group code $code")
                 throw ErrorCodeException(
                     errorCode = AuthMessageCode.UN_DEFAULT_GROUP_ERROR,
                     defaultMessage = MessageCodeUtil.getCodeLanMessage(AuthMessageCode.UN_DEFAULT_GROUP_ERROR)
@@ -259,6 +261,7 @@ abstract class AbsPermissionRoleServiceImpl @Autowired constructor(
         if (defaultGroup) {
             // 若为默认分组,需校验提供用户组是否在默认分组内。
             if (!DefaultGroupType.containsDisplayName(name)) {
+                logger.warn("create default group but name is error name $name")
                 // 不在默认分组内则直接报错
                 throw ErrorCodeException(
                     errorCode = AuthMessageCode.DEFAULT_GROUP_ERROR,
@@ -268,6 +271,7 @@ abstract class AbsPermissionRoleServiceImpl @Autowired constructor(
         } else {
             // 非默认分组,不能使用默认分组组名
             if (DefaultGroupType.containsDisplayName(name)) {
+                logger.warn("create customize group name is equal default group name $name")
                 throw ErrorCodeException(
                     errorCode = AuthMessageCode.UN_DEFAULT_GROUP_ERROR,
                     defaultMessage = MessageCodeUtil.getCodeLanMessage(AuthMessageCode.UN_DEFAULT_GROUP_ERROR)

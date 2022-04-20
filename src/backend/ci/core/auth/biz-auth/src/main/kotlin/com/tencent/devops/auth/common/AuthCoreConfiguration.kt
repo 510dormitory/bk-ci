@@ -179,13 +179,11 @@ class AuthCoreConfiguration {
     @Bean
     @ConditionalOnMissingBean(PermissionRoleService::class)
     fun permissionRoleService(
-        dslContext: DSLContext,
         groupService: AuthGroupService,
         resourceService: BkResourceService,
         actionsService: ActionService,
         authCustomizePermissionService: AuthCustomizePermissionService
     ) = SimplePermissionRoleService(
-        dslContext = dslContext,
         groupService = groupService,
         resourceService = resourceService,
         actionsService = actionsService,

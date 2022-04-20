@@ -41,6 +41,6 @@ class ServiceRoleResourceImpl @Autowired constructor(
         return Result(permissionRoleService.createProjectManager(
             userId = userId,
             projectId = projectCode
-        ))
+        ).toString())
     }
 }

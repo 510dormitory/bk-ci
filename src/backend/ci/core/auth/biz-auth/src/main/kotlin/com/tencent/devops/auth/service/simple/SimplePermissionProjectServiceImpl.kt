@@ -93,7 +93,7 @@ class SimplePermissionProjectServiceImpl @Autowired constructor(
             logger.info("$userId not join any project")
             return emptyList()
         }
-        val groupInfos = groupService.getGroupByCodes(groupIds) ?: emptyList()
+        val groupInfos = groupService.getGroupByIds(groupIds) ?: emptyList()
         val projectCodes = mutableListOf<String>()
         groupInfos.forEach {
             projectCodes.add(it.projectCode)

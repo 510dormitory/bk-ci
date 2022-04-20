@@ -55,6 +55,18 @@ abstract class BkResourceServiceImpl @Autowired constructor(
                 )
             )
         }
+        val parentResources = resourceDao.getParentResource(dslContext)
+        // 校验父类资源是否合法
+        if (resource.parent != null && !parentResources.contains(resource.parent)) {
+            logger.warn("create parents ${resource.parent} is ")
+            throw ErrorCodeException(
+                errorCode = AuthMessageCode.PERMISSION_MODEL_CHECK_FAIL,
+                defaultMessage = MessageCodeUtil.getCodeLanMessage(
+                    messageCode = AuthMessageCode.PERMISSION_MODEL_CHECK_FAIL
+                )
+            )
+        }
+
         // 添加资源类数据
         resourceDao.createResource(dslContext, userId, resource)
 
@@ -85,7 +97,7 @@ abstract class BkResourceServiceImpl @Autowired constructor(
     }
 
     override fun getResourceBySystem(systemId: String): List<ResourceInfo>? {
-        val records = resourceDao.getResourceBySystemId(dslContext, systemId) ?: return emptyList()
+        val records = resourceDao.getResourceBySystemId(dslContext, systemId)
         val result = mutableListOf<ResourceInfo>()
         records.map {
             val resourceInfo = resourceDao.convert(it)

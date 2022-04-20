@@ -76,7 +76,7 @@ class AuthGroupMemberService @Autowired constructor(
         groupId: Int,
         userId: String
     ) {
-        val count = authGroupMemberDao.deleteGroupMember(
+        authGroupMemberDao.deleteGroupMember(
             dslContext = dslContext,
             groupId = groupId,
             userId = userId
@@ -136,14 +136,14 @@ class AuthGroupMemberService @Autowired constructor(
         memberGroupInfos.map {
             val expiredAt = DateTimeUtil.convertLocalDateTimeToTimestamp(it.expiredTiem)
             // TODO: 获取用户组信息
-            UserGroupInfoDTO(
+            groupInfos.add(UserGroupInfoDTO(
                 groupId = it.groupId.toString(),
                 groupDesc = "",
                 expiredAt = expiredAt,
                 expiredStatus = ExpiredStatus.buildExpiredStatus(expiredAt, TimeUnit.DAYS.toMillis(5)),
                 groupName = "",
                 groupType = it.groupType
-            )
+            ))
         }
 
         return groupInfos
@@ -233,7 +233,7 @@ class AuthGroupMemberService @Autowired constructor(
         val userJoinGroup = authGroupMemberDao.getUserGroup(
             dslContext, userId
         )
-        if (userJoinGroup.isNullOrEmpty()) {
+        if (userJoinGroup.isEmpty()) {
             userProjectCache.put(userId, emptyList())
             return null
         }

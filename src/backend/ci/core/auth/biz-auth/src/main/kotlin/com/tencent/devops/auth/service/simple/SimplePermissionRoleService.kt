@@ -36,17 +36,15 @@ import com.tencent.devops.auth.service.action.ActionService
 import com.tencent.devops.auth.service.action.BkResourceService
 import com.tencent.devops.auth.service.ci.impl.AbsPermissionRoleServiceImpl
 import com.tencent.devops.common.auth.api.pojo.DefaultGroupType
-import org.jooq.DSLContext
 import org.springframework.beans.factory.annotation.Autowired
 
 /**
  * 蓝盾开源内置权限实现
  */
 class SimplePermissionRoleService @Autowired constructor(
-    private val dslContext: DSLContext,
     private val groupService: AuthGroupService,
-    private val resourceService: BkResourceService,
-    private val actionsService: ActionService,
+    resourceService: BkResourceService,
+    actionsService: ActionService,
     private val authCustomizePermissionService: AuthCustomizePermissionService
 ) : AbsPermissionRoleServiceImpl(
     groupService = groupService,
@@ -128,11 +126,11 @@ class SimplePermissionRoleService @Autowired constructor(
         val groups = mutableListOf<DefaultGroup>()
         val defaultGroup = DefaultGroupType.getAll()
         defaultGroup.forEach {
-            DefaultGroup(
+            groups.add(DefaultGroup(
                 code = it.name,
                 name = it.name,
                 displayName = it.displayName
-            )
+            ))
         }
         return groups
     }

@@ -129,11 +129,11 @@ class AuthGroupService @Autowired constructor(
         )
     }
 
-    fun getGroupCode(groupId: Int): TAuthGroupInfoRecord? {
+    fun getGroupById(groupId: Int): TAuthGroupInfoRecord? {
         return groupDao.getGroupById(dslContext, groupId)
     }
 
-    fun getGroupByCodes(groupIds: List<Int>): List<TAuthGroupInfoRecord>? {
+    fun getGroupByIds(groupIds: List<Int>): List<TAuthGroupInfoRecord>? {
         return groupDao.getGroupByIds(dslContext, groupIds)
     }
 

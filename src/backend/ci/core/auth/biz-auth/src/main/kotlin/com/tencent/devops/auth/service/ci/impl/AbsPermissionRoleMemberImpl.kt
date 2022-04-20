@@ -54,11 +54,6 @@ abstract class AbsPermissionRoleMemberImpl @Autowired constructor(
     private val groupMemberService: AuthGroupMemberService
 ) : PermissionRoleMemberService {
 
-    private val projectMemberCache = CacheBuilder.newBuilder()
-        .maximumSize(20)
-        .expireAfterWrite(5, TimeUnit.MINUTES)
-        .build<String, ProjectMembersVO>()
-
     override fun createRoleMember(
         userId: String,
         projectId: String,
@@ -101,7 +96,7 @@ abstract class AbsPermissionRoleMemberImpl @Autowired constructor(
         }
 
         // 获取用户组类型, 确保用户组存在
-        val groupInfo = groupService.getGroupCode(roleId)
+        val groupInfo = groupService.getGroupById(roleId)
             ?: throw ErrorCodeException(
                 errorCode = AuthMessageCode.GROUP_NOT_EXIST,
                 defaultMessage = MessageCodeUtil.getCodeLanMessage(AuthMessageCode.GROUP_NOT_EXIST)
