@@ -34,6 +34,7 @@ import com.tencent.devops.auth.service.StrategyService
 import com.tencent.devops.auth.service.action.ActionService
 import com.tencent.devops.auth.service.ci.PermissionService
 import com.tencent.devops.common.auth.api.AuthPermission
+import com.tencent.devops.common.auth.utils.ActionTypeUtils
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -57,7 +58,11 @@ class SimpleAuthPermissionService @Autowired constructor(
         if (isAdmin(userId)) {
             return true
         }
-        actionService.checkSystemAction(arrayListOf(action))
+
+        val checkAction = if (!action.startsWith(resourceType!!)) {
+            resourceType + "_" + action
+        } else {action}
+        actionService.checkSystemAction(arrayListOf(checkAction))
         /**
          * 1. 查询用户在项目下加入了哪些组
          * 2. 默认用户组校验
@@ -79,7 +84,11 @@ class SimpleAuthPermissionService @Autowired constructor(
         if (defaultGroup.isNotEmpty()) {
             defaultGroup.forEach {
                 val groupCode = groupService.getGroupCode(it)?.groupCode ?: return@forEach
-                val checkDefaultPermission = strategyService.checkDefaultStrategy(groupCode, resourceType!!, action)
+                val checkDefaultPermission = strategyService.checkDefaultStrategy(
+                    strategyName = groupCode,
+                    resourceType = resourceType!!,
+                    actionId = checkAction
+                )
                 if (checkDefaultPermission) {
                     return true
                 }
@@ -90,7 +99,7 @@ class SimpleAuthPermissionService @Autowired constructor(
             customizeGroup.forEach {
                 val checkPermission = authCustomizePermissionService.checkCustomizePermission(
                     groupId = it,
-                    action = action,
+                    action = checkAction,
                     resourceType = resourceType!!
                 )
                 if (checkPermission) {

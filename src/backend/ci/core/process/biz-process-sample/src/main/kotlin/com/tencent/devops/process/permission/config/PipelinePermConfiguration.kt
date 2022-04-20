@@ -39,6 +39,7 @@ import com.tencent.devops.process.permission.PipelinePermissionService
 import com.tencent.devops.process.permission.StreamPipelinePermissionServiceImpl
 import com.tencent.devops.process.permission.service.impl.BluekingPipelinePermissionService
 import com.tencent.devops.process.permission.service.impl.MockPipelinePermissionService
+import com.tencent.devops.process.permission.service.impl.SimplePipelinePermissionService
 import com.tencent.devops.process.permission.service.impl.V3PipelinePermissionService
 import org.jooq.DSLContext
 import org.springframework.boot.autoconfigure.AutoConfigureOrder
@@ -68,22 +69,34 @@ class PipelinePermConfiguration {
         pipelineAuthServiceCode = pipelineAuthServiceCode
     )
 
+//    @Bean
+//    @ConditionalOnProperty(prefix = "auth", name = ["idProvider"], havingValue = "sample")
+//    fun mockPipelinePermissionService(
+//        dslContext: DSLContext,
+//        pipelineInfoDao: PipelineInfoDao,
+//        authProjectApi: AuthProjectApi,
+//        authResourceApi: AuthResourceApi,
+//        authPermissionApi: AuthPermissionApi,
+//        pipelineAuthServiceCode: PipelineAuthServiceCode
+//    ): PipelinePermissionService = MockPipelinePermissionService(
+//        dslContext = dslContext,
+//        pipelineInfoDao = pipelineInfoDao,
+//        authProjectApi = authProjectApi,
+//        authResourceApi = authResourceApi,
+//        authPermissionApi = authPermissionApi,
+//        pipelineAuthServiceCode = pipelineAuthServiceCode
+//    )
+
     @Bean
     @ConditionalOnProperty(prefix = "auth", name = ["idProvider"], havingValue = "sample")
-    fun mockPipelinePermissionService(
+    fun simplePipelinePermissionService(
         dslContext: DSLContext,
         pipelineInfoDao: PipelineInfoDao,
-        authProjectApi: AuthProjectApi,
-        authResourceApi: AuthResourceApi,
-        authPermissionApi: AuthPermissionApi,
-        pipelineAuthServiceCode: PipelineAuthServiceCode
-    ): PipelinePermissionService = MockPipelinePermissionService(
+        client: Client
+    ): PipelinePermissionService = SimplePipelinePermissionService(
         dslContext = dslContext,
         pipelineInfoDao = pipelineInfoDao,
-        authProjectApi = authProjectApi,
-        authResourceApi = authResourceApi,
-        authPermissionApi = authPermissionApi,
-        pipelineAuthServiceCode = pipelineAuthServiceCode
+        client = client
     )
 
     @Bean

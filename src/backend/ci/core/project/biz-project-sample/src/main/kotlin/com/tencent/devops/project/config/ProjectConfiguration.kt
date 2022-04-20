@@ -75,18 +75,8 @@ class ProjectConfiguration {
     @Bean
     @ConditionalOnProperty(prefix = "auth", name = ["idProvider"], havingValue = "sample")
     fun sampleProjectPermissionService(
-        dslContext: DSLContext,
-        projectDao: ProjectDao,
-        authProjectApi: AuthProjectApi,
-        authResourceApi: AuthResourceApi,
-        projectAuthServiceCode: ProjectAuthServiceCode,
         client: Client
     ): ProjectPermissionService = SimpleProjectPermissionServiceImpl(
-        dslContext = dslContext,
-        projectDao = projectDao,
-        authProjectApi = authProjectApi,
-        authResourceApi = authResourceApi,
-        projectAuthServiceCode = projectAuthServiceCode,
         client = client
     )
 

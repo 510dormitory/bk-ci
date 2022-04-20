@@ -27,84 +27,53 @@
 
 package com.tencent.devops.project.service.impl
 
+import com.tencent.devops.auth.api.service.ServicePermissionAuthResource
+import com.tencent.devops.auth.api.service.ServiceProjectAuthResource
 import com.tencent.devops.auth.api.service.ServiceRoleMemberResource
 import com.tencent.devops.auth.api.service.ServiceRoleResource
 import com.tencent.devops.auth.pojo.dto.RoleMemberDTO
 import com.tencent.devops.auth.pojo.enum.UserType
 import com.tencent.devops.common.auth.api.AuthPermission
-import com.tencent.devops.common.auth.api.AuthProjectApi
-import com.tencent.devops.common.auth.api.AuthResourceApi
-import com.tencent.devops.common.auth.api.AuthResourceType
 import com.tencent.devops.common.auth.api.pojo.ResourceRegisterInfo
-import com.tencent.devops.common.auth.code.BK_DEVOPS_SCOPE
-import com.tencent.devops.common.auth.code.ProjectAuthServiceCode
 import com.tencent.devops.common.client.Client
-import com.tencent.devops.project.dao.ProjectDao
 import com.tencent.devops.project.pojo.user.UserDeptDetail
 import com.tencent.devops.project.service.ProjectPermissionService
-import org.jooq.DSLContext
 import org.springframework.beans.factory.annotation.Autowired
 
 class SimpleProjectPermissionServiceImpl @Autowired constructor(
-    private val dslContext: DSLContext,
-    private val projectDao: ProjectDao,
-    private val authProjectApi: AuthProjectApi,
-    private val authResourceApi: AuthResourceApi,
-    private val projectAuthServiceCode: ProjectAuthServiceCode,
     private val client: Client
 ) : ProjectPermissionService {
 
     override fun verifyUserProjectPermission(accessToken: String?, projectCode: String, userId: String): Boolean {
-        val projectCodes = authProjectApi.getUserProjects(
-            serviceCode = projectAuthServiceCode,
+        return client.get(ServiceProjectAuthResource::class).isProjectUser(
+            token = accessToken ?: "",
             userId = userId,
-            supplier = supplierForPermission
-        )
-        return projectCodes.contains(projectCode)
-    }
-
-    private val supplierForPermission = {
-        val fakeList = mutableListOf<String>()
-        projectDao.listProjectCodes(dslContext).forEach {
-            fakeList.add(it)
-        }
-        fakeList
+            projectCode = projectCode
+        ).data!!
     }
 
     override fun getUserProjectsAvailable(userId: String): Map<String, String> {
-        return authProjectApi.getUserProjectsAvailable(
-            serviceCode = projectAuthServiceCode,
-            userId = userId,
-            supplier = supplierForPermission
-        )
+        val projectMap = mutableMapOf<String, String>()
+        val userProjects = client.get(ServiceProjectAuthResource::class).getUserProjects("", userId).data
+        userProjects?.forEach {
+            projectMap[it] = it
+        }
+        return projectMap
     }
 
     override fun getUserProjects(userId: String): List<String> {
-        return authProjectApi.getUserProjects(
-            serviceCode = projectAuthServiceCode,
-            userId = userId,
-            supplier = supplierForPermission
-        )
+        return client.get(ServiceProjectAuthResource::class).getUserProjects(
+            token = "",
+            userId = userId
+        ).data ?: emptyList()
     }
 
     override fun modifyResource(projectCode: String, projectName: String) {
-        authResourceApi.modifyResource(
-            serviceCode = projectAuthServiceCode,
-            resourceType = AuthResourceType.PROJECT,
-            projectCode = BK_DEVOPS_SCOPE,
-            resourceCode = projectCode,
-            resourceName = projectName
-        )
+        return
     }
 
     override fun deleteResource(projectCode: String) {
-
-        authResourceApi.deleteResource(
-            serviceCode = projectAuthServiceCode,
-            resourceType = AuthResourceType.PROJECT,
-            projectCode = BK_DEVOPS_SCOPE,
-            resourceCode = projectCode
-        )
+        return
     }
 
     /**
@@ -143,6 +112,12 @@ class SimpleProjectPermissionServiceImpl @Autowired constructor(
         userId: String,
         permission: AuthPermission
     ): Boolean {
-        return true
+        return client.get(ServicePermissionAuthResource::class).validateUserResourcePermission(
+            userId = userId,
+            token = "",
+            projectCode = projectCode,
+            resourceCode = projectCode,
+            action = permission.value,
+        ).data!!
     }
 }
