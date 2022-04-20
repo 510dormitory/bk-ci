@@ -131,9 +131,9 @@ class AuthGroupMemberService @Autowired constructor(
             dslContext = dslContext,
             projectCode = projectCode,
             userId = userId
-        ) ?: return null
+        )
         val groupInfos = mutableListOf<UserGroupInfoDTO>()
-        memberGroupInfos.map {
+        memberGroupInfos?.map {
             val expiredAt = DateTimeUtil.convertLocalDateTimeToTimestamp(it.expiredTiem)
             // TODO: 获取用户组信息
             groupInfos.add(UserGroupInfoDTO(
