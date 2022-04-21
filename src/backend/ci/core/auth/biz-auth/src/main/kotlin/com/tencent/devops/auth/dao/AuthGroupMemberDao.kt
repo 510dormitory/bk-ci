@@ -126,6 +126,20 @@ class AuthGroupMemberDao {
         }
     }
 
+    fun updateGroupMembesrExpired(
+        dslContext: DSLContext,
+        userIds: List<String>,
+        groupId: Int,
+        expiredDay: Long
+    ): Int {
+        with(TAuthGroupMember.T_AUTH_GROUP_MEMBER) {
+            return dslContext.update(this).set(EXPIRED_TIEM, LocalDateTime.now().plusDays(expiredDay))
+                .set(EXPIRED_TYPE, ExpiredStatus.NORMAL.type)
+                .where(USER_ID.`in`(userIds).and(GROUP_ID.eq(groupId)))
+                .execute()
+        }
+    }
+
     fun deleteGroupMember(
         dslContext: DSLContext,
         groupId: Int,

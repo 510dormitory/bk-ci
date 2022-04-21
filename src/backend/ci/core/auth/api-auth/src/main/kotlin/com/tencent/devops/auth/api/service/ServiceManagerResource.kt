@@ -25,21 +25,45 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.tencent.devops.auth.service.action
+package com.tencent.devops.auth.api.service
 
-import com.tencent.devops.auth.pojo.resource.CreateResourceDTO
-import com.tencent.devops.auth.pojo.resource.ResourceInfo
-import com.tencent.devops.auth.pojo.resource.UpdateResourceDTO
+import com.tencent.devops.common.api.auth.AUTH_HEADER_DEVOPS_BK_TOKEN
+import com.tencent.devops.common.api.auth.AUTH_HEADER_DEVOPS_USER_ID
+import com.tencent.devops.common.api.pojo.Result
+import io.swagger.annotations.Api
+import io.swagger.annotations.ApiParam
+import javax.ws.rs.Consumes
+import javax.ws.rs.GET
+import javax.ws.rs.HeaderParam
+import javax.ws.rs.Path
+import javax.ws.rs.PathParam
+import javax.ws.rs.Produces
+import javax.ws.rs.QueryParam
+import javax.ws.rs.core.MediaType
 
-interface BkResourceService {
-    fun createResource(userId: String, resource: CreateResourceDTO): Boolean
-    fun updateResource(userId: String, resourceId: String, resource: UpdateResourceDTO): Boolean
+@Api(tags = ["SERVICE_MANAGER"], description = "权限校验--超级管理员")
+@Path("/service/auth/manager")
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
+interface ServiceManagerResource {
 
-    fun getResource(resourceType: String): ResourceInfo?
-
-    fun getResourceBySystem(systemId: String): List<ResourceInfo>?
-
-    fun resourceList(): List<ResourceInfo>?
-
-    fun checkResource(resourceType: String): Boolean
+    @GET
+    @Path("/projects/{projectCode}")
+    fun validateManagerPermission(
+        @HeaderParam(AUTH_HEADER_DEVOPS_USER_ID)
+        @ApiParam("待校验用户ID", required = true)
+        userId: String,
+        @HeaderParam(AUTH_HEADER_DEVOPS_BK_TOKEN)
+        @ApiParam("认证token", required = true)
+        token: String,
+        @PathParam("projectCode")
+        @ApiParam("项目编码", required = true)
+        projectCode: String,
+        @QueryParam("action")
+        @ApiParam("资源类型", required = true)
+        action: String,
+        @QueryParam("resourceCode")
+        @ApiParam("资源编码", required = false)
+        resourceCode: String
+    ): Result<Boolean>
 }

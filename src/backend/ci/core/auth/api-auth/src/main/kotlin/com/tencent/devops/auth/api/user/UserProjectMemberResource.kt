@@ -28,10 +28,10 @@
 
 package com.tencent.devops.auth.api.user
 
-import com.tencent.bk.sdk.iam.constants.ManagerScopesEnum
 import com.tencent.devops.auth.pojo.dto.GroupMemberDTO
 import com.tencent.devops.auth.pojo.dto.RoleMemberDTO
 import com.tencent.devops.auth.pojo.dto.UserGroupInfoDTO
+import com.tencent.devops.auth.pojo.enum.UserType
 import com.tencent.devops.auth.pojo.vo.ProjectMembersVO
 import com.tencent.devops.common.api.auth.AUTH_HEADER_USER_ID
 import com.tencent.devops.common.api.pojo.Result
@@ -132,7 +132,7 @@ interface UserProjectMemberResource {
         members: String,
         @ApiParam("组员类型 user:单用户, dept:组织", required = true)
         @QueryParam("type")
-        type: ManagerScopesEnum
+        type: UserType
     ): Result<Boolean>
 
     @GET
@@ -163,8 +163,8 @@ interface UserProjectMemberResource {
         @ApiParam(name = "角色Id", required = true)
         @PathParam("roleId")
         roleId: Int,
-        @ApiParam("添加用户集合", required = true)
-        members: List<RoleMemberDTO>,
+        @ApiParam("添加用户集合,多个用户用,分隔", required = true)
+        members: List<String>,
         @ApiParam(name = "超时天数", required = true)
         @QueryParam("expiredDay")
         expiredDay: Long

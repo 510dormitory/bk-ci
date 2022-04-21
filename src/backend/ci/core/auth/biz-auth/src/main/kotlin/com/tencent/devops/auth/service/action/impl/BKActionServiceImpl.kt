@@ -27,6 +27,7 @@
 
 package com.tencent.devops.auth.service.action.impl
 
+import com.google.common.cache.CacheBuilder
 import com.tencent.devops.auth.constant.AuthMessageCode
 import com.tencent.devops.auth.dao.ActionDao
 import com.tencent.devops.auth.pojo.action.ActionInfo
@@ -35,17 +36,27 @@ import com.tencent.devops.auth.pojo.action.UpdateActionDTO
 import com.tencent.devops.auth.service.action.ActionService
 import com.tencent.devops.auth.service.action.BkResourceService
 import com.tencent.devops.common.api.exception.ErrorCodeException
+import com.tencent.devops.common.api.util.DateTimeUtil
 import com.tencent.devops.common.auth.api.pojo.DefaultGroupType
 import com.tencent.devops.common.service.utils.MessageCodeUtil
 import org.jooq.DSLContext
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import java.util.concurrent.TimeUnit
 
 abstract class BKActionServiceImpl @Autowired constructor(
     open val dslContext: DSLContext,
     open val actionDao: ActionDao,
     open val resourceService: BkResourceService
 ) : ActionService {
+
+    /**
+     * 系统action缓存
+     */
+    private val actionMap = CacheBuilder.newBuilder()
+        .expireAfterWrite(1, TimeUnit.HOURS)
+        .maximumSize(200)
+        .build<String, List<String>>()
 
     override fun createAction(userId: String, action: CreateActionDTO): Boolean {
         logger.info("createAction $userId|$action")
@@ -118,13 +129,20 @@ abstract class BKActionServiceImpl @Autowired constructor(
     }
 
     override fun checkSystemAction(actions: List<String>): Boolean {
+        if (actionMap.getIfPresent(ACTION_MAP_KEY) != null) {
+            val systemAction = actionMap.getIfPresent(ACTION_MAP_KEY)
+            if (actions.intersect(systemAction!!).size == actions.size) {
+                return true
+            }
+        }
         val systemActions = actionDao.getAllAction(dslContext, "*")?.map {
             it.actionId
         } ?: return false
-        if (actions.intersect(systemActions).size < actions.size) {
-            return false
+        if (actions.intersect(systemActions!!).size == actions.size) {
+            actionMap.put(ACTION_MAP_KEY, systemActions)
+            return true
         }
-        return true
+        return false
     }
 
     abstract fun extSystemCreate(userId: String, action: CreateActionDTO)
@@ -133,5 +151,6 @@ abstract class BKActionServiceImpl @Autowired constructor(
 
     companion object {
         val logger = LoggerFactory.getLogger(BKActionServiceImpl::class.java)
+        const val ACTION_MAP_KEY = "ci"
     }
 }

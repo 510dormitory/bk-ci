@@ -28,11 +28,11 @@
 
 package com.tencent.devops.auth.resources.user
 
-import com.tencent.bk.sdk.iam.constants.ManagerScopesEnum
 import com.tencent.devops.auth.api.user.UserProjectMemberResource
 import com.tencent.devops.auth.pojo.dto.GroupMemberDTO
 import com.tencent.devops.auth.pojo.dto.RoleMemberDTO
 import com.tencent.devops.auth.pojo.dto.UserGroupInfoDTO
+import com.tencent.devops.auth.pojo.enum.UserType
 import com.tencent.devops.auth.pojo.vo.ProjectMembersVO
 import com.tencent.devops.auth.service.ci.PermissionRoleMemberService
 import com.tencent.devops.common.api.pojo.Result
@@ -89,7 +89,7 @@ class UserProjectMemberResourceImpl @Autowired constructor(
         roleId: Int,
         managerGroup: Boolean,
         members: String,
-        type: ManagerScopesEnum
+        type: UserType
     ): Result<Boolean> {
         Result(
             permissionRoleMemberService.deleteRoleMember(
@@ -116,9 +116,15 @@ class UserProjectMemberResourceImpl @Autowired constructor(
         userId: String,
         projectId: String,
         roleId: Int,
-        members: List<RoleMemberDTO>,
+        members: List<String>,
         expiredDay: Long,
     ): Result<Boolean> {
-        TODO("Not yet implemented")
+        return Result(permissionRoleMemberService.renewalUser(
+            projectId = projectId,
+            roleId = roleId,
+            expiredDay = expiredDay,
+            executeUser = userId,
+            renewalUser = members
+        ))
     }
 }

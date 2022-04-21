@@ -25,21 +25,13 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.tencent.devops.auth.service.action
+package com.tencent.devops.auth.service
 
-import com.tencent.devops.auth.pojo.resource.CreateResourceDTO
-import com.tencent.devops.auth.pojo.resource.ResourceInfo
-import com.tencent.devops.auth.pojo.resource.UpdateResourceDTO
-
-interface BkResourceService {
-    fun createResource(userId: String, resource: CreateResourceDTO): Boolean
-    fun updateResource(userId: String, resourceId: String, resource: UpdateResourceDTO): Boolean
-
-    fun getResource(resourceType: String): ResourceInfo?
-
-    fun getResourceBySystem(systemId: String): List<ResourceInfo>?
-
-    fun resourceList(): List<ResourceInfo>?
-
-    fun checkResource(resourceType: String): Boolean
+interface LocalManagerService {
+    fun projectManagerCheck(
+        userId: String,
+        projectCode: String,
+        action: String,
+        resourceType: String
+    ): Boolean
 }

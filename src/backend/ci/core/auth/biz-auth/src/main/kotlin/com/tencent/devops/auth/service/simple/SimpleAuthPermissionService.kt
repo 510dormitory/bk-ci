@@ -27,19 +27,24 @@
 
 package com.tencent.devops.auth.service.simple
 
+import com.tencent.devops.auth.constant.AuthMessageCode
 import com.tencent.devops.auth.service.AuthCustomizePermissionService
 import com.tencent.devops.auth.service.AuthGroupMemberService
 import com.tencent.devops.auth.service.AuthGroupService
 import com.tencent.devops.auth.service.StrategyService
 import com.tencent.devops.auth.service.action.ActionService
+import com.tencent.devops.auth.service.action.BkResourceService
 import com.tencent.devops.auth.service.ci.PermissionService
+import com.tencent.devops.common.api.exception.ErrorCodeException
 import com.tencent.devops.common.auth.api.AuthPermission
+import com.tencent.devops.common.service.utils.MessageCodeUtil
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 
 class SimpleAuthPermissionService @Autowired constructor(
     val groupService: AuthGroupService,
     val actionService: ActionService,
+    val resourceService: BkResourceService,
     val groupMemberService: AuthGroupMemberService,
     val authCustomizePermissionService: AuthCustomizePermissionService,
     val strategyService: StrategyService
@@ -57,11 +62,27 @@ class SimpleAuthPermissionService @Autowired constructor(
         if (isAdmin(userId)) {
             return true
         }
-
-        val checkAction = if (!action.startsWith(resourceType!!)) {
+        val checkAction = if (!action.startsWith(resourceType!!) && action != "all_action") {
             resourceType + "_" + action
         } else {action}
-        actionService.checkSystemAction(arrayListOf(checkAction))
+
+        // 校验resource是否合法，有缓存
+        if (!resourceService.checkResource(resourceType)) {
+            logger.warn("validateUserResourcePermission $userId $projectCode $resourceType checkFail")
+            throw ErrorCodeException(
+                errorCode = AuthMessageCode.PERMISSION_MODEL_CHECK_FAIL,
+                defaultMessage = MessageCodeUtil.getCodeLanMessage(AuthMessageCode.PERMISSION_MODEL_CHECK_FAIL)
+            )
+        }
+
+        // 校验action是否合法，有缓存
+        if (!actionService.checkSystemAction(arrayListOf(checkAction))) {
+            logger.warn("validateUserResourcePermission $userId $projectCode $action checkFail")
+            throw ErrorCodeException(
+                errorCode = AuthMessageCode.PERMISSION_MODEL_CHECK_FAIL,
+                defaultMessage = MessageCodeUtil.getCodeLanMessage(AuthMessageCode.PERMISSION_MODEL_CHECK_FAIL)
+            )
+        }
         /**
          * 1. 查询用户在项目下加入了哪些组
          * 2. 默认用户组校验

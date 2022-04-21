@@ -40,6 +40,9 @@ open class AbsPermissionGradeServiceImpl @Autowired constructor(
 ) : PermissionGradeService {
 
     override fun checkGradeManagerUser(userId: String, projectId: String) {
+        if (userId == "admin") {
+            return
+        }
         if (!permissionProjectService.checkProjectManager(userId, projectId)) {
             logger.warn("checkGradeManagerUser $userId $projectId ")
             throw PermissionForbiddenException(MessageCodeUtil.getCodeLanMessage(AuthMessageCode.GRADE_CHECK_FAIL))

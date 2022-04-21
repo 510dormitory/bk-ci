@@ -27,6 +27,7 @@
 
 package com.tencent.devops.auth.service.action.impl
 
+import com.google.common.cache.CacheBuilder
 import com.tencent.devops.auth.constant.AuthMessageCode
 import com.tencent.devops.auth.dao.ResourceDao
 import com.tencent.devops.auth.pojo.resource.CreateResourceDTO
@@ -38,11 +39,19 @@ import com.tencent.devops.common.service.utils.MessageCodeUtil
 import org.jooq.DSLContext
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import java.util.concurrent.TimeUnit
 
 abstract class BkResourceServiceImpl @Autowired constructor(
     open val dslContext: DSLContext,
     open val resourceDao: ResourceDao
 ) : BkResourceService {
+
+    private val resourceCache = CacheBuilder.newBuilder()
+        .expireAfterWrite(1, TimeUnit.DAYS)
+        .maximumSize(50)
+        .build<String, String>()
+
+
     override fun createResource(userId: String, resource: CreateResourceDTO): Boolean {
         // 判断此资源是否存在, 存在直接报错
         if (resourceDao.getResourceById(dslContext, resource.resourceId) != null) {
@@ -114,6 +123,18 @@ abstract class BkResourceServiceImpl @Autowired constructor(
             result.add(resourceInfo!!)
         }
         return result
+    }
+
+    override fun checkResource(resourceType: String): Boolean {
+        if (resourceCache.getIfPresent(resourceType) != null) {
+            return true
+        }
+        val resourceRecord = getResource(resourceType)
+        if (getResource(resourceType) != null) {
+            resourceCache.put(resourceType, resourceRecord!!.resourceId)
+            return true
+        }
+        return false
     }
 
     abstract fun createExtSystem(resource: CreateResourceDTO)

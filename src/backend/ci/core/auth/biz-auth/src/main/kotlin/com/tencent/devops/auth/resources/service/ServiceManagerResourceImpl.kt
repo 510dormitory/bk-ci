@@ -25,21 +25,30 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.tencent.devops.auth.service.action
+package com.tencent.devops.auth.resources.service
 
-import com.tencent.devops.auth.pojo.resource.CreateResourceDTO
-import com.tencent.devops.auth.pojo.resource.ResourceInfo
-import com.tencent.devops.auth.pojo.resource.UpdateResourceDTO
+import com.tencent.devops.auth.api.service.ServiceManagerResource
+import com.tencent.devops.auth.service.LocalManagerService
+import com.tencent.devops.common.api.pojo.Result
+import com.tencent.devops.common.web.RestResource
+import org.springframework.beans.factory.annotation.Autowired
 
-interface BkResourceService {
-    fun createResource(userId: String, resource: CreateResourceDTO): Boolean
-    fun updateResource(userId: String, resourceId: String, resource: UpdateResourceDTO): Boolean
-
-    fun getResource(resourceType: String): ResourceInfo?
-
-    fun getResourceBySystem(systemId: String): List<ResourceInfo>?
-
-    fun resourceList(): List<ResourceInfo>?
-
-    fun checkResource(resourceType: String): Boolean
+@RestResource
+class ServiceManagerResourceImpl @Autowired constructor(
+    val localManagerService: LocalManagerService
+) : ServiceManagerResource {
+    override fun validateManagerPermission(
+        userId: String,
+        token: String,
+        projectCode: String,
+        action: String,
+        resourceCode: String
+    ): Result<Boolean> {
+        return Result(localManagerService.projectManagerCheck(
+            userId = userId,
+            projectCode = projectCode,
+            action = action,
+            resourceType = resourceCode
+        ))
+    }
 }

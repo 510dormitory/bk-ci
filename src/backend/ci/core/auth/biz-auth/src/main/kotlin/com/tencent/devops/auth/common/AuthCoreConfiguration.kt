@@ -58,6 +58,8 @@ import com.tencent.devops.auth.service.simple.SimplePermissionGrantServiceImpl
 import com.tencent.devops.auth.service.simple.SimplePermissionProjectServiceImpl
 import com.tencent.devops.auth.service.simple.SimplePermissionRoleMemberServiceImpl
 import com.tencent.devops.auth.service.simple.SimplePermissionRoleService
+import com.tencent.devops.auth.service.LocalManagerService
+import com.tencent.devops.auth.service.SimpleLocalManagerServiceImpl
 import com.tencent.devops.auth.utils.HostUtils
 import com.tencent.devops.common.client.ClientTokenService
 import com.tencent.devops.common.event.dispatcher.pipeline.mq.MQ
@@ -159,11 +161,17 @@ class AuthCoreConfiguration {
     fun permissionService(
         groupService: AuthGroupService,
         actionService: ActionService,
+        resourceService: BkResourceService,
         groupMemberService: AuthGroupMemberService,
         authCustomizePermissionService: AuthCustomizePermissionService,
         strategyService: StrategyService
     ) = SimpleAuthPermissionService(
-        groupService, actionService, groupMemberService, authCustomizePermissionService, strategyService
+        groupService = groupService,
+        actionService = actionService,
+        resourceService = resourceService,
+        groupMemberService = groupMemberService,
+        authCustomizePermissionService = authCustomizePermissionService,
+        strategyService = strategyService
     )
 
     @Bean
@@ -226,6 +234,10 @@ class AuthCoreConfiguration {
     @Bean
     @ConditionalOnMissingBean(name = ["permissionUrlService"])
     fun permissionUrlService() = EmptyPermissionUrlServiceImpl()
+
+    @Bean
+    @ConditionalOnMissingBean(LocalManagerService::class)
+    fun simpleManagerService() = SimpleLocalManagerServiceImpl()
 
     @Bean
     @ConditionalOnMissingBean(ActionService::class)

@@ -102,9 +102,12 @@ class SimplePermissionProjectServiceImpl @Autowired constructor(
     }
 
     override fun isProjectUser(userId: String, projectCode: String, group: BkAuthGroup?): Boolean {
+        if (isAdmin(userId)) {
+            return true
+        }
         // 获取用户加入项目下的用户组
         val groupInfos = groupMemberService.getUserGroupByProject(userId, projectCode)
-        if (groupInfos == null) {
+        if (groupInfos.isNullOrEmpty()) {
             logger.warn("$userId not join $projectCode group")
             return false
         }
@@ -127,6 +130,9 @@ class SimplePermissionProjectServiceImpl @Autowired constructor(
     }
 
     override fun checkProjectManager(userId: String, projectCode: String): Boolean {
+        if (isAdmin(userId)) {
+            return true
+        }
         val groupInfos = groupMemberService.getUserGroupByProject(userId, projectCode)
         if (groupInfos.isNullOrEmpty()) {
             logger.warn("$userId not join $projectCode group")
@@ -194,6 +200,16 @@ class SimplePermissionProjectServiceImpl @Autowired constructor(
             )
         }
         return groups
+    }
+
+    /**
+     * admin为系统管理员
+     */
+    private fun isAdmin(userId: String): Boolean {
+        if (userId == "admin") {
+            return true
+        }
+        return false
     }
 
     companion object {

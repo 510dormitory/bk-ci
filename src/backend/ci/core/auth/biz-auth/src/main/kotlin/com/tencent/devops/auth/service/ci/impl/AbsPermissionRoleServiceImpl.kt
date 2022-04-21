@@ -166,7 +166,7 @@ abstract class AbsPermissionRoleServiceImpl @Autowired constructor(
         // 默认用户组不能调整权限策略
         if (groupInfo.groupType) {
             throw ErrorCodeException(
-                errorCode = AuthMessageCode.GROUP_NOT_EXIST,
+                errorCode = AuthMessageCode.DEFAULT_GROUP_NOT_ALLOW_UPDATE,
                 defaultMessage = MessageCodeUtil.getCodeLanMessage(AuthMessageCode.DEFAULT_GROUP_NOT_ALLOW_UPDATE)
             )
         }

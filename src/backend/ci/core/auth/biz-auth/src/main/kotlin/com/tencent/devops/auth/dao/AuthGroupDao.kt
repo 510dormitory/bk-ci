@@ -97,20 +97,21 @@ class AuthGroupDao {
     fun getGroupById(dslContext: DSLContext, groupId: Int): TAuthGroupInfoRecord? {
         with(TAuthGroupInfo.T_AUTH_GROUP_INFO) {
             return dslContext.selectFrom(this)
-                .where(ID.eq(groupId)).fetchOne()
+                .where(ID.eq(groupId).and(IS_DELETE.eq(false))).fetchOne()
         }
     }
 
     fun getGroupByIds(dslContext: DSLContext, groupIds: List<Int>): Result<TAuthGroupInfoRecord> {
         with(TAuthGroupInfo.T_AUTH_GROUP_INFO) {
             return dslContext.selectFrom(this)
-                .where(ID.`in`(groupIds)).fetch()
+                .where(ID.`in`(groupIds).and(IS_DELETE.eq(false))).fetch()
         }
     }
 
     fun getGroupByRelationId(dslContext: DSLContext, relationId: Int): TAuthGroupInfoRecord? {
         with(TAuthGroupInfo.T_AUTH_GROUP_INFO) {
-            return dslContext.selectFrom(this).where(RELATION_ID.eq(relationId.toString())).fetchAny()
+            return dslContext.selectFrom(this)
+                .where(RELATION_ID.eq(relationId.toString()).and(IS_DELETE.eq(false))).fetchAny()
         }
     }
 
@@ -124,7 +125,7 @@ class AuthGroupDao {
         with(TAuthGroupInfo.T_AUTH_GROUP_INFO) {
             return dslContext.selectFrom(this).where(
                 PROJECT_CODE.eq(projectCode)
-                    .and(GROUP_NAME.eq(groupName))
+                    .and(GROUP_NAME.eq(groupName).and(IS_DELETE.eq(false)))
             ).fetchAny()
         }
     }
@@ -193,7 +194,7 @@ class AuthGroupDao {
 
     fun getRelationId(dslContext: DSLContext, roleId: Int): TAuthGroupInfoRecord? {
         with(TAuthGroupInfo.T_AUTH_GROUP_INFO) {
-            return dslContext.selectFrom(this).where(ID.eq(roleId)).fetchAny()
+            return dslContext.selectFrom(this).where(ID.eq(roleId).and(IS_DELETE.eq(false))).fetchAny()
         }
     }
 

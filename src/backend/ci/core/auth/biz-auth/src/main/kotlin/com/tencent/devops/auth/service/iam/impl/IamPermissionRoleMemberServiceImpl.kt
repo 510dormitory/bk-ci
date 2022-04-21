@@ -97,7 +97,7 @@ open class IamPermissionRoleMemberServiceImpl @Autowired constructor(
         projectId: String,
         roleId: Int,
         deleteUserId: String,
-        type: ManagerScopesEnum,
+        type: UserType,
         managerGroup: Boolean
     ) {
         super.deleteRoleMember(executeUserId, projectId, roleId, deleteUserId, type, managerGroup)
@@ -109,10 +109,12 @@ open class IamPermissionRoleMemberServiceImpl @Autowired constructor(
             throw ParamBlankException(MessageCodeUtil.getCodeLanMessage(AuthMessageCode.CAN_NOT_FIND_RELATION))
         }
         val iamProjectId = iamCacheService.getProjectIamRelationId(projectId)
-
-        iamManagerService.deleteRoleGroupMember(iamId.toInt(), ManagerScopesEnum.getType(type), deleteUserId)
+        val iamUserType = if (type == UserType.USER) {
+            ManagerScopesEnum.USER
+        } else ManagerScopesEnum.DEPARTMENT
+        iamManagerService.deleteRoleGroupMember(iamId.toInt(), ManagerScopesEnum.getType(iamUserType), deleteUserId)
         // 如果是删除用户,且用户是管理员需同步删除该用户分分级管理员权限
-        if (managerGroup && type == ManagerScopesEnum.USER) {
+        if (managerGroup && type.type == ManagerScopesEnum.USER.name) {
             iamManagerService.deleteGradeManagerRoleMember(deleteUserId, iamProjectId)
         }
     }
@@ -281,7 +283,7 @@ open class IamPermissionRoleMemberServiceImpl @Autowired constructor(
         projectId: String,
         roleId: Int,
         executeUser: String,
-        renewalUser: String,
+        renewalUser: List<String>,
         expiredDay: Long,
     ): Boolean {
         return super.renewalUser(projectId, roleId, executeUser, renewalUser, expiredDay)

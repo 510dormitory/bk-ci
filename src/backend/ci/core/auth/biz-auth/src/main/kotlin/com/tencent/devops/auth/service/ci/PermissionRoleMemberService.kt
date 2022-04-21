@@ -27,10 +27,10 @@
 
 package com.tencent.devops.auth.service.ci
 
-import com.tencent.bk.sdk.iam.constants.ManagerScopesEnum
 import com.tencent.devops.auth.pojo.dto.GroupMemberDTO
 import com.tencent.devops.auth.pojo.dto.RoleMemberDTO
 import com.tencent.devops.auth.pojo.dto.UserGroupInfoDTO
+import com.tencent.devops.auth.pojo.enum.UserType
 import com.tencent.devops.auth.pojo.vo.ProjectMembersVO
 
 interface PermissionRoleMemberService {
@@ -49,7 +49,7 @@ interface PermissionRoleMemberService {
         projectId: String,
         roleId: Int,
         deleteUserId: String,
-        type: ManagerScopesEnum,
+        type: UserType,
         managerGroup: Boolean
     )
 
@@ -63,7 +63,7 @@ interface PermissionRoleMemberService {
         projectId: String,
         roleId: Int,
         executeUser: String,
-        renewalUser: String,
+        renewalUser: List<String>,
         expiredDay: Long,
     ): Boolean
 }

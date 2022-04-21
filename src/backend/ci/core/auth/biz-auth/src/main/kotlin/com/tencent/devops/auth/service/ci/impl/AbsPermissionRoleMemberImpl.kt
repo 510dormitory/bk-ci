@@ -27,8 +27,6 @@
 
 package com.tencent.devops.auth.service.ci.impl
 
-import com.google.common.cache.CacheBuilder
-import com.tencent.bk.sdk.iam.constants.ManagerScopesEnum
 import com.tencent.devops.auth.constant.AuthMessageCode
 import com.tencent.devops.auth.entity.GroupMemberInfo
 import com.tencent.devops.auth.pojo.dto.GroupMemberDTO
@@ -45,7 +43,6 @@ import com.tencent.devops.common.api.exception.ErrorCodeException
 import com.tencent.devops.common.service.utils.MessageCodeUtil
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import java.util.concurrent.TimeUnit
 
 abstract class AbsPermissionRoleMemberImpl @Autowired constructor(
     private val permissionGradeService: PermissionGradeService,
@@ -135,7 +132,7 @@ abstract class AbsPermissionRoleMemberImpl @Autowired constructor(
         projectId: String,
         roleId: Int,
         deleteUserId: String,
-        type: ManagerScopesEnum,
+        type: UserType,
         managerGroup: Boolean
     ) {
         // 如果不是本人操作,需校验操作人是否为项目管理员。如果是本人操作是为主动退出用户组
@@ -166,11 +163,11 @@ abstract class AbsPermissionRoleMemberImpl @Autowired constructor(
         projectId: String,
         roleId: Int,
         executeUser: String,
-        renewalUser: String,
+        renewalUser: List<String>,
         expiredDay: Long,
     ): Boolean {
         // 校验用户是否有加入用户组
-        if (!groupMemberService.userJoinGroup(renewalUser, roleId)) {
+        if (!groupMemberService.usersJoinGroup(renewalUser, roleId)) {
             throw ErrorCodeException(
                 errorCode = AuthMessageCode.USER_EXIST_JOIN_GROUP,
                 defaultMessage = MessageCodeUtil.getCodeLanMessage(AuthMessageCode.USER_EXIST_JOIN_GROUP)
@@ -182,11 +179,11 @@ abstract class AbsPermissionRoleMemberImpl @Autowired constructor(
             MAX_EXPIRED_DAY
         } else expiredDay
 
-        return groupMemberService.renewalUser(
-            userId = renewalUser,
+        return groupMemberService.renewalUsers(
+            userIds = renewalUser,
             expiredDay = expiredTime as Long,
             groupId = roleId
-        ) == 1
+        ) == renewalUser.size
     }
 
     abstract fun checkUser(userId: String)

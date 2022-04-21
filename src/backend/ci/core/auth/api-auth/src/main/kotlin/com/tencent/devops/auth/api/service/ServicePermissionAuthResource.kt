@@ -76,12 +76,12 @@ interface ServicePermissionAuthResource {
         @HeaderParam(AUTH_HEADER_DEVOPS_BK_TOKEN)
         @ApiParam("认证token", required = true)
         token: String,
+        @PathParam("projectCode")
+        @ApiParam("项目编码", required = true)
+        projectCode: String,
         @QueryParam("action")
         @ApiParam("资源类型", required = true)
         action: String,
-        @QueryParam("projectCode")
-        @ApiParam("项目编码", required = true)
-        projectCode: String,
         @QueryParam("resourceCode")
         @ApiParam("资源编码", required = false)
         resourceCode: String?
