@@ -146,9 +146,10 @@ class AuthGroupMemberDao {
         userId: String
     ): Int {
         with(TAuthGroupMember.T_AUTH_GROUP_MEMBER) {
-            return dslContext.delete(this)
-                .where(USER_ID.eq(userId).and(GROUP_ID.eq(groupId)))
-                .execute()
+            return dslContext.update(this)
+                .set(EXPIRED_TIEM, LocalDateTime.now())
+                .set(EXPIRED_TYPE, ExpiredStatus.TIMEOUT.type)
+                .where(GROUP_ID.eq(groupId).and(USER_ID.eq(userId))).execute()
         }
     }
 

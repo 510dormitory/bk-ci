@@ -128,7 +128,7 @@ interface UserProjectMemberResource {
         @QueryParam("managerGroup")
         managerGroup: Boolean,
         @ApiParam("待删除用户或组织Id", required = true)
-        @QueryParam("id")
+        @QueryParam("members")
         members: String,
         @ApiParam("组员类型 user:单用户, dept:组织", required = true)
         @QueryParam("type")
@@ -151,7 +151,7 @@ interface UserProjectMemberResource {
     ): Result<List<UserGroupInfoDTO>?>
 
     @PUT
-    @Path("/projectIds/{projectId}//roleIds/{roleId}/renewal")
+    @Path("/projectIds/{projectId}/roleIds/{roleId}/renewal")
     @ApiOperation("用户续约用户组")
     fun renewalUser(
         @ApiParam(name = "用户名", required = true)
@@ -163,7 +163,7 @@ interface UserProjectMemberResource {
         @ApiParam(name = "角色Id", required = true)
         @PathParam("roleId")
         roleId: Int,
-        @ApiParam("添加用户集合,多个用户用,分隔", required = true)
+        @ApiParam("添加用户集合", required = true)
         members: List<String>,
         @ApiParam(name = "超时天数", required = true)
         @QueryParam("expiredDay")
