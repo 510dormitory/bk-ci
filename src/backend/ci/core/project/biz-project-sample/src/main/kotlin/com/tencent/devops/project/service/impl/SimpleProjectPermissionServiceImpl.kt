@@ -35,13 +35,16 @@ import com.tencent.devops.auth.pojo.dto.RoleMemberDTO
 import com.tencent.devops.auth.pojo.enum.UserType
 import com.tencent.devops.common.auth.api.AuthPermission
 import com.tencent.devops.common.auth.api.pojo.ResourceRegisterInfo
+import com.tencent.devops.common.auth.callback.AuthConstants.DEFAULT_SYSTEM
 import com.tencent.devops.common.client.Client
+import com.tencent.devops.common.client.ClientTokenService
 import com.tencent.devops.project.pojo.user.UserDeptDetail
 import com.tencent.devops.project.service.ProjectPermissionService
 import org.springframework.beans.factory.annotation.Autowired
 
 class SimpleProjectPermissionServiceImpl @Autowired constructor(
-    private val client: Client
+    private val client: Client,
+    private val tokenService: ClientTokenService
 ) : ProjectPermissionService {
 
     override fun verifyUserProjectPermission(accessToken: String?, projectCode: String, userId: String): Boolean {
@@ -63,7 +66,7 @@ class SimpleProjectPermissionServiceImpl @Autowired constructor(
 
     override fun getUserProjects(userId: String): List<String> {
         return client.get(ServiceProjectAuthResource::class).getUserProjects(
-            token = "",
+            token = tokenService.getSystemToken(DEFAULT_SYSTEM)!!,
             userId = userId
         ).data ?: emptyList()
     }
@@ -114,7 +117,7 @@ class SimpleProjectPermissionServiceImpl @Autowired constructor(
     ): Boolean {
         return client.get(ServicePermissionAuthResource::class).validateUserResourcePermission(
             userId = userId,
-            token = "",
+            token = tokenService.getSystemToken(DEFAULT_SYSTEM)!!,
             projectCode = projectCode,
             resourceCode = projectCode,
             action = permission.value,

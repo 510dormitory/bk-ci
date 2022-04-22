@@ -31,6 +31,7 @@ import com.tencent.devops.auth.constant.AuthMessageCode
 import com.tencent.devops.auth.service.ci.PermissionProjectService
 import com.tencent.devops.auth.service.iam.PermissionGradeService
 import com.tencent.devops.common.api.exception.PermissionForbiddenException
+import com.tencent.devops.common.auth.callback.AuthConstants.ADMIN
 import com.tencent.devops.common.service.utils.MessageCodeUtil
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -40,7 +41,7 @@ open class AbsPermissionGradeServiceImpl @Autowired constructor(
 ) : PermissionGradeService {
 
     override fun checkGradeManagerUser(userId: String, projectId: String) {
-        if (userId == "admin") {
+        if (userId == ADMIN) {
             return
         }
         if (!permissionProjectService.checkProjectManager(userId, projectId)) {

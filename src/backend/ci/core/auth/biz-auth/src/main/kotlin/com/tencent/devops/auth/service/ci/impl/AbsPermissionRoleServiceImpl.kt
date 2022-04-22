@@ -27,7 +27,6 @@
 
 package com.tencent.devops.auth.service.ci.impl
 
-import com.tencent.bk.sdk.iam.exception.IamException
 import com.tencent.devops.auth.constant.AuthMessageCode
 import com.tencent.devops.auth.pojo.dto.GroupDTO
 import com.tencent.devops.auth.pojo.dto.ProjectRoleDTO
@@ -36,9 +35,8 @@ import com.tencent.devops.auth.service.AuthGroupService
 import com.tencent.devops.auth.service.action.ActionService
 import com.tencent.devops.auth.service.action.BkResourceService
 import com.tencent.devops.auth.service.ci.PermissionRoleService
+import com.tencent.devops.auth.service.iam.PermissionGradeService
 import com.tencent.devops.common.api.exception.ErrorCodeException
-import com.tencent.devops.common.api.exception.ParamBlankException
-import com.tencent.devops.common.api.exception.RemoteServiceException
 import com.tencent.devops.common.auth.api.pojo.DefaultGroupType
 import com.tencent.devops.common.service.utils.MessageCodeUtil
 import org.slf4j.LoggerFactory
@@ -48,7 +46,8 @@ abstract class AbsPermissionRoleServiceImpl @Autowired constructor(
     private val groupService: AuthGroupService,
     private val resourceService: BkResourceService,
     private val actionsService: ActionService,
-    private val authCustomizePermissionService: AuthCustomizePermissionService
+    private val authCustomizePermissionService: AuthCustomizePermissionService,
+    private val permissionGradeService: PermissionGradeService
 ) : PermissionRoleService {
     override fun createPermissionRole(
         userId: String,
@@ -71,6 +70,7 @@ abstract class AbsPermissionRoleServiceImpl @Autowired constructor(
 
         checkRoleCode(groupInfo.code, groupInfo.defaultGroup ?: true)
         checkRoleName(groupInfo.name, groupInfo.defaultGroup ?: true)
+        managerCheck(userId, projectId)
 
         val roleId = groupService.createGroup(
             userId = userId,
@@ -84,26 +84,6 @@ abstract class AbsPermissionRoleServiceImpl @Autowired constructor(
                 desc = groupInfo.description
             )
         )
-        try {
-            // 扩展系统添加用户组. 可根据自身情况做扩展
-            groupCreateExt(
-                roleId = roleId,
-                userId = userId,
-                projectId = projectId,
-                projectCode = projectCode,
-                groupInfo = groupInfo,
-                checkManager = true
-            )
-            logger.info("create ext group success $projectCode $roleId")
-        } catch (iamException: IamException) {
-            logger.warn("create Role ext fail $iamException")
-            groupService.deleteGroup(roleId, false)
-            throw RemoteServiceException("create project role fail: ${iamException.errorMsg}")
-        } catch (e: Exception) {
-            logger.warn("create Role ext fail $e")
-            groupService.deleteGroup(roleId, false)
-            throw ParamBlankException("create project role fail")
-        }
         return roleId
     }
 
@@ -137,19 +117,27 @@ abstract class AbsPermissionRoleServiceImpl @Autowired constructor(
     ) {
         // 校验用户组名称
         checkRoleName(groupInfo.name, true)
+        managerCheck(userId, projectId)
         groupService.updateGroup(userId, roleId, groupInfo)
-        // 关联系统同步修改
-        updateGroupExt(
+    }
+
+    override fun updateGroupDesc(
+        userId: String,
+        projectId: String,
+        roleId: Int,
+        desc: String,
+    ): Boolean {
+        managerCheck(userId, projectId)
+        return groupService.updateGroupDesc(
             userId = userId,
-            projectId = projectId,
-            roleId = roleId,
-            groupInfo = groupInfo
-        )
+            projectCode = projectId,
+            groupId = roleId,
+            desc = desc
+        ) == 1
     }
 
     override fun deletePermissionRole(userId: String, projectId: String, roleId: Int) {
-        // 优先删除扩展系统内的数据,最后再删本地数据
-        deleteRoleExt(userId, projectId, roleId)
+        managerCheck(userId, projectId)
         groupService.deleteGroup(roleId)
     }
 
@@ -170,6 +158,8 @@ abstract class AbsPermissionRoleServiceImpl @Autowired constructor(
                 defaultMessage = MessageCodeUtil.getCodeLanMessage(AuthMessageCode.DEFAULT_GROUP_NOT_ALLOW_UPDATE)
             )
         }
+        managerCheck(userId, projectCode)
+
         permissionStrategy.forEach { resource, actions ->
             // 校验资源和action是否存在
             if (resourceService.getResource(resource) == null) {
@@ -201,28 +191,6 @@ abstract class AbsPermissionRoleServiceImpl @Autowired constructor(
         }
         return rolePermissionStrategyExt(userId, projectCode, roleId, permissionStrategy)
     }
-
-    abstract fun groupCreateExt(
-        roleId: Int,
-        userId: String,
-        projectId: String,
-        projectCode: String,
-        groupInfo: ProjectRoleDTO,
-        checkManager: Boolean
-    )
-
-    abstract fun updateGroupExt(
-        userId: String,
-        projectId: String,
-        roleId: Int,
-        groupInfo: ProjectRoleDTO
-    )
-
-    abstract fun deleteRoleExt(
-        userId: String,
-        projectId: String,
-        roleId: Int
-    )
 
     abstract fun rolePermissionStrategyExt(
         userId: String,
@@ -278,6 +246,11 @@ abstract class AbsPermissionRoleServiceImpl @Autowired constructor(
                 )
             }
         }
+    }
+
+    // 校验操作人是否有项目分级管理员权限
+    private fun managerCheck(userId: String, projectId: String) {
+        permissionGradeService.checkGradeManagerUser(userId, projectId)
     }
 
     companion object {

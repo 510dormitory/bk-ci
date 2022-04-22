@@ -75,9 +75,11 @@ class ProjectConfiguration {
     @Bean
     @ConditionalOnProperty(prefix = "auth", name = ["idProvider"], havingValue = "sample")
     fun sampleProjectPermissionService(
-        client: Client
+        client: Client,
+        tokenService: ClientTokenService
     ): ProjectPermissionService = SimpleProjectPermissionServiceImpl(
-        client = client
+        client = client,
+        tokenService = tokenService
     )
 
     @Bean

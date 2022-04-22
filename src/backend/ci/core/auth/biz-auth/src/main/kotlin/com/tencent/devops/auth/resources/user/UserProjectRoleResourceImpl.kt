@@ -75,6 +75,15 @@ class UserProjectRoleResourceImpl @Autowired constructor(
         return Result(true)
     }
 
+    override fun updateGroupDesc(
+        userId: String,
+        projectId: String,
+        roleId: Int,
+        desc: String,
+    ): Result<Boolean> {
+        TODO("Not yet implemented")
+    }
+
     override fun getProjectRoles(userId: String, projectId: String): Result<List<GroupInfoVo>> {
         return Result(permissionRoleService.getPermissionRole(projectId))
     }

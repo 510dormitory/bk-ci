@@ -53,6 +53,8 @@ import com.tencent.devops.auth.service.ci.impl.AbsPermissionRoleServiceImpl
 import com.tencent.devops.auth.service.iam.IamCacheService
 import com.tencent.devops.auth.service.iam.PermissionGradeService
 import com.tencent.devops.common.api.exception.ErrorCodeException
+import com.tencent.devops.common.api.exception.ParamBlankException
+import com.tencent.devops.common.api.exception.RemoteServiceException
 import com.tencent.devops.common.auth.api.AuthPermission
 import com.tencent.devops.common.auth.api.AuthResourceType
 import com.tencent.devops.common.auth.api.pojo.BkAuthGroup
@@ -82,87 +84,46 @@ open class IamPermissionRoleExtService @Autowired constructor(
     groupService = groupService,
     resourceService = resourceService,
     actionsService = actionsService,
-    authCustomizePermissionService = authCustomizePermissionService
+    authCustomizePermissionService = authCustomizePermissionService,
+    permissionGradeService = permissionGradeService
 ) {
 
-    override fun groupCreateExt(
-        roleId: Int,
+    override fun createPermissionRole(
         userId: String,
         projectId: String,
         projectCode: String,
         groupInfo: ProjectRoleDTO,
-        checkManager: Boolean
-    ) {
-        val iamProjectId = iamCacheService.getProjectIamRelationId(projectId)
-        if (checkManager) {
-            // 校验操作人是否有项目分级管理员权限
-            permissionGradeService.checkGradeManagerUser(userId, projectId)
-        }
-
-        val defaultGroup = groupInfo.defaultGroup!!
-
-        // 默认分组名称规则: projectName-groupName
-        val groupName = IamGroupUtils.buildIamGroup(groupInfo.projectName, groupInfo.displayName ?: groupInfo.name)
-
-        val groupDescription = if (groupInfo.description.isNullOrEmpty()) {
-            IamGroupUtils.buildDefaultDescription(groupInfo.projectName, groupInfo.name, userId)
-        } else {
-            groupInfo.description
-        }
-        // 添加项目下用户组
-        val managerRoleGroup = ManagerRoleGroup(groupName, groupDescription, groupInfo.defaultGroup)
-        val roleGroups = mutableListOf<ManagerRoleGroup>()
-        roleGroups.add(managerRoleGroup)
-        val groups = ManagerRoleGroupDTO.builder().groups(roleGroups).build()
-        val iamRoleId = iamManagerService.batchCreateRoleGroup(iamProjectId, groups)
-
+    ): Int {
+        val roleId = super.createPermissionRole(userId, projectId, projectCode, groupInfo)
+        // 扩展添加IAM用户组
         try {
-            // 默认分组需要分配默认权限
-            if (defaultGroup) {
-                when (groupInfo.code) {
-                    BkAuthGroup.DEVELOPER.value -> addDevelopPermission(iamRoleId, projectCode)
-                    BkAuthGroup.MAINTAINER.value -> addMaintainerPermission(iamRoleId, projectCode)
-                    BkAuthGroup.TESTER.value -> addTestPermission(iamRoleId, projectCode)
-                    BkAuthGroup.QC.value -> addQCPermission(iamRoleId, projectCode)
-                    BkAuthGroup.PM.value -> addPMPermission(iamRoleId, projectCode)
-                }
-            } else {
-                // TODO: 添加自定义组权限。 待严格测试
-                if (!groupInfo.actionMap.isNullOrEmpty()) {
-                    val groupAction = buildGroupAction(groupInfo.actionMap!!)
-                    addIamGroupPermission(groupAction, roleId, projectCode)
-                }
-            }
+            createIamGroup(
+                projectId = projectId,
+                roleId = roleId,
+                userId = userId,
+                groupInfo = groupInfo
+            )
+        } catch (iamException: IamException) {
+            logger.warn("create Role ext fail $iamException")
+            groupService.deleteGroup(roleId, false)
+            throw RemoteServiceException("create project role fail: ${iamException.errorMsg}")
         } catch (e: Exception) {
-            iamManagerService.deleteRoleGroup(iamRoleId)
-            logger.warn("create iam group permission fail $projectCode | $iamRoleId | $groupInfo")
-            throw e
+            logger.warn("create Role ext fail $e")
+            groupService.deleteGroup(roleId, false)
+            throw ParamBlankException("create project role fail")
         }
-        logger.info("create ext group success $projectCode $roleId $iamRoleId. start binding")
-        // 绑定iamRoleId到本地group表内
-        groupService.bindRelationId(roleId, iamRoleId.toString())
+        return roleId
     }
 
-    override fun updateGroupExt(userId: String, projectId: String, roleId: Int, groupInfo: ProjectRoleDTO) {
-        val iamGroupId = groupService.getRelationId(roleId) ?: return
-        permissionGradeService.checkGradeManagerUser(userId, projectId)
-
-        val roleName = IamGroupUtils.buildIamGroup(groupInfo.projectName, groupInfo.name)
-        val newGroupInfo = ManagerRoleGroup(
-            roleName,
-            groupInfo.description,
-            groupInfo.defaultGroup
-        )
-        iamManagerService.updateRoleGroup(iamGroupId.toInt(), newGroupInfo)
+    override fun updatePermissionRole(userId: String, projectId: String, roleId: Int, groupInfo: ProjectRoleDTO) {
+        super.updatePermissionRole(userId, projectId, roleId, groupInfo)
+        updateIamGroup(userId, projectId, roleId, groupInfo)
     }
 
-    override fun deleteRoleExt(userId: String, projectId: String, relationRoleId: Int) {
-        logger.info("deleteRoleExt $userId $projectId $relationRoleId")
+    override fun deletePermissionRole(userId: String, projectId: String, roleId: Int) {
+        super.deletePermissionRole(userId, projectId, roleId)
         val iamProjectId = iamCacheService.getProjectIamRelationId(projectId)
-        permissionGradeService.checkGradeManagerUser(userId, projectId)
-
-        // iam侧会统一把用户组内用剔除后,再删除用户组
-        iamManagerService.deleteRoleGroup(relationRoleId)
+        deleteIamRole(userId, projectId, iamProjectId)
     }
 
     override fun getPermissionRole(projectId: String): List<GroupInfoVo> {
@@ -401,6 +362,81 @@ open class IamPermissionRoleExtService @Autowired constructor(
             logger.info("$resource $resourceStrategyList")
         }
         return Pair(projectStrategyList, resourceStrategyMap)
+    }
+
+    private fun createIamGroup(
+        projectId: String,
+        roleId: Int,
+        groupInfo: ProjectRoleDTO,
+        userId: String
+    ) {
+        val iamProjectId = iamCacheService.getProjectIamRelationId(projectId)
+
+        val defaultGroup = groupInfo.defaultGroup!!
+
+        // 默认分组名称规则: projectName-groupName
+        val groupName = IamGroupUtils.buildIamGroup(groupInfo.projectName, groupInfo.displayName ?: groupInfo.name)
+
+        val groupDescription = if (groupInfo.description.isNullOrEmpty()) {
+            IamGroupUtils.buildDefaultDescription(groupInfo.projectName, groupInfo.name, userId)
+        } else {
+            groupInfo.description
+        }
+        // 添加项目下用户组
+        val managerRoleGroup = ManagerRoleGroup(groupName, groupDescription, groupInfo.defaultGroup)
+        val roleGroups = mutableListOf<ManagerRoleGroup>()
+        roleGroups.add(managerRoleGroup)
+        val groups = ManagerRoleGroupDTO.builder().groups(roleGroups).build()
+        val iamRoleId = iamManagerService.batchCreateRoleGroup(iamProjectId, groups)
+
+        try {
+            // 默认分组需要分配默认权限
+            if (defaultGroup) {
+                when (groupInfo.code) {
+                    BkAuthGroup.DEVELOPER.value -> addDevelopPermission(iamRoleId, projectId)
+                    BkAuthGroup.MAINTAINER.value -> addMaintainerPermission(iamRoleId, projectId)
+                    BkAuthGroup.TESTER.value -> addTestPermission(iamRoleId, projectId)
+                    BkAuthGroup.QC.value -> addQCPermission(iamRoleId, projectId)
+                    BkAuthGroup.PM.value -> addPMPermission(iamRoleId, projectId)
+                }
+            } else {
+                // TODO: 添加自定义组权限。 待严格测试
+                if (!groupInfo.actionMap.isNullOrEmpty()) {
+                    val groupAction = buildGroupAction(groupInfo.actionMap!!)
+                    addIamGroupPermission(groupAction, roleId, projectId)
+                }
+            }
+        } catch (e: Exception) {
+            iamManagerService.deleteRoleGroup(iamRoleId)
+            logger.warn("create iam group permission fail $projectId | $iamRoleId | $groupInfo")
+            throw e
+        }
+        logger.info("create ext group success $projectId $roleId $iamRoleId. start binding")
+        // 绑定iamRoleId到本地group表内
+        groupService.bindRelationId(roleId, iamRoleId.toString())
+    }
+
+
+    private fun updateIamGroup(userId: String, projectId: String, roleId: Int, groupInfo: ProjectRoleDTO) {
+        val iamGroupId = groupService.getRelationId(roleId) ?: return
+        permissionGradeService.checkGradeManagerUser(userId, projectId)
+
+        val roleName = IamGroupUtils.buildIamGroup(groupInfo.projectName, groupInfo.name)
+        val newGroupInfo = ManagerRoleGroup(
+            roleName,
+            groupInfo.description,
+            groupInfo.defaultGroup
+        )
+        iamManagerService.updateRoleGroup(iamGroupId.toInt(), newGroupInfo)
+    }
+
+    private fun deleteIamRole(userId: String, projectId: String, relationRoleId: Int) {
+        logger.info("deleteRoleExt $userId $projectId $relationRoleId")
+        val iamProjectId = iamCacheService.getProjectIamRelationId(projectId)
+        permissionGradeService.checkGradeManagerUser(userId, projectId)
+
+        // iam侧会统一把用户组内用剔除后,再删除用户组
+        iamManagerService.deleteRoleGroup(relationRoleId)
     }
 
     companion object {

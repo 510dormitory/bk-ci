@@ -35,6 +35,7 @@ import com.tencent.devops.auth.service.AuthGroupService
 import com.tencent.devops.auth.service.action.ActionService
 import com.tencent.devops.auth.service.action.BkResourceService
 import com.tencent.devops.auth.service.ci.impl.AbsPermissionRoleServiceImpl
+import com.tencent.devops.auth.service.iam.PermissionGradeService
 import com.tencent.devops.common.auth.api.pojo.DefaultGroupType
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -45,27 +46,26 @@ class SimplePermissionRoleService @Autowired constructor(
     private val groupService: AuthGroupService,
     resourceService: BkResourceService,
     actionsService: ActionService,
-    private val authCustomizePermissionService: AuthCustomizePermissionService
+    private val authCustomizePermissionService: AuthCustomizePermissionService,
+    private val permissionGradeService: PermissionGradeService
 ) : AbsPermissionRoleServiceImpl(
     groupService = groupService,
     resourceService = resourceService,
     actionsService = actionsService,
-    authCustomizePermissionService = authCustomizePermissionService
+    authCustomizePermissionService = authCustomizePermissionService,
+    permissionGradeService = permissionGradeService
 ) {
-
-
-    override fun groupCreateExt(
-        roleId: Int,
+    override fun createPermissionRole(
         userId: String,
         projectId: String,
         projectCode: String,
         groupInfo: ProjectRoleDTO,
-        checkManager: Boolean
-    ) {
+    ): Int {
+        val roleId = super.createPermissionRole(userId, projectId, projectCode, groupInfo)
         // 默认用户组权限模版统一存在Strategy表内，无需建立用户组与权限的映射数据
         // 用户自定义用户组需将数据存入Customize表内建立用户组与权限的映射关系
         if (groupInfo.defaultGroup == true) {
-            return
+            return roleId
         }
         groupInfo.actionMap?.forEach { resource, actions ->
             authCustomizePermissionService.createCustomizePermission(
@@ -75,23 +75,7 @@ class SimplePermissionRoleService @Autowired constructor(
                 actions = actions.joinToString(",")
             )
         }
-    }
-
-    override fun updateGroupExt(
-        userId: String,
-        projectId: String,
-        roleId: Int,
-        groupInfo: ProjectRoleDTO
-    ) {
-        return
-    }
-
-    override fun deleteRoleExt(
-        userId: String,
-        projectId: String,
-        roleId: Int
-    ) {
-        return
+        return roleId
     }
 
     override fun rolePermissionStrategyExt(

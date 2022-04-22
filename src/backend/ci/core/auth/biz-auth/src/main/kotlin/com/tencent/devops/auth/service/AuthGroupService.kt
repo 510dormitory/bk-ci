@@ -129,6 +129,21 @@ class AuthGroupService @Autowired constructor(
         )
     }
 
+    fun updateGroupDesc(
+        userId: String,
+        groupId: Int,
+        projectCode: String,
+        desc: String,
+    ): Int {
+        return groupDao.updateDesc(
+            dslContext = dslContext,
+            userId = userId,
+            groupId = groupId,
+            projectCode = projectCode,
+            desc = desc
+        )
+    }
+
     fun getGroupById(groupId: Int): TAuthGroupInfoRecord? {
         return groupDao.getGroupById(dslContext, groupId)
     }

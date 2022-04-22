@@ -39,6 +39,14 @@ interface PermissionRoleService {
         roleId: Int,
         groupInfo: ProjectRoleDTO
     )
+
+    fun updateGroupDesc(
+        userId: String,
+        projectId: String,
+        roleId: Int,
+        desc: String
+    ): Boolean
+
     fun createPermissionRole(
         userId: String,
         projectId: String,

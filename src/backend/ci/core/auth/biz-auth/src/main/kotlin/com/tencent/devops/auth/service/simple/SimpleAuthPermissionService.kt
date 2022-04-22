@@ -37,6 +37,9 @@ import com.tencent.devops.auth.service.action.BkResourceService
 import com.tencent.devops.auth.service.ci.PermissionService
 import com.tencent.devops.common.api.exception.ErrorCodeException
 import com.tencent.devops.common.auth.api.AuthPermission
+import com.tencent.devops.common.auth.callback.AuthConstants.ADMIN
+import com.tencent.devops.common.auth.callback.AuthConstants.ALL_ACTION
+import com.tencent.devops.common.auth.callback.AuthConstants.MIDDLE_LABLE
 import com.tencent.devops.common.service.utils.MessageCodeUtil
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -62,8 +65,8 @@ class SimpleAuthPermissionService @Autowired constructor(
         if (isAdmin(userId)) {
             return true
         }
-        val checkAction = if (!action.startsWith(resourceType!!) && action != "all_action") {
-            resourceType + "_" + action
+        val checkAction = if (!action.startsWith(resourceType!!) && action != ALL_ACTION) {
+            resourceType + MIDDLE_LABLE + action
         } else {action}
 
         // 校验resource是否合法，有缓存
@@ -177,7 +180,7 @@ class SimpleAuthPermissionService @Autowired constructor(
      * admin为系统管理员
      */
     private fun isAdmin(userId: String): Boolean {
-        if (userId == "admin") {
+        if (userId == ADMIN) {
             return true
         }
         return false

@@ -192,6 +192,22 @@ class AuthGroupDao {
         }
     }
 
+    fun updateDesc(
+        dslContext: DSLContext,
+        groupId: Int,
+        projectCode: String,
+        desc: String,
+        userId: String
+    ): Int {
+        with(TAuthGroupInfo.T_AUTH_GROUP_INFO) {
+            return dslContext.update(this)
+                .set(DESC, desc)
+                .set(UPDATE_USER, userId)
+                .set(UPDATE_TIME, LocalDateTime.now())
+                .where(PROJECT_CODE.eq(projectCode).and(ID.eq(groupId))).execute()
+        }
+    }
+
     fun getRelationId(dslContext: DSLContext, roleId: Int): TAuthGroupInfoRecord? {
         with(TAuthGroupInfo.T_AUTH_GROUP_INFO) {
             return dslContext.selectFrom(this).where(ID.eq(roleId).and(IS_DELETE.eq(false))).fetchAny()

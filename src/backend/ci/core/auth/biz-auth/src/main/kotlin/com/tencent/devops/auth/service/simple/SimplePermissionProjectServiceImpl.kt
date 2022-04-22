@@ -38,6 +38,7 @@ import com.tencent.devops.common.auth.api.pojo.BKAuthProjectRolesResources
 import com.tencent.devops.common.auth.api.pojo.BkAuthGroup
 import com.tencent.devops.common.auth.api.pojo.BkAuthGroupAndUserList
 import com.tencent.devops.common.auth.api.pojo.DefaultGroupType
+import com.tencent.devops.common.auth.callback.AuthConstants.ADMIN
 import com.tencent.devops.common.service.utils.MessageCodeUtil
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -206,7 +207,7 @@ class SimplePermissionProjectServiceImpl @Autowired constructor(
      * admin为系统管理员
      */
     private fun isAdmin(userId: String): Boolean {
-        if (userId == "admin") {
+        if (userId == ADMIN) {
             return true
         }
         return false

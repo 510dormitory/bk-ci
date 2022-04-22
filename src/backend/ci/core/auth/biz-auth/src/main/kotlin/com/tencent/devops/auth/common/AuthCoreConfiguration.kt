@@ -190,12 +190,14 @@ class AuthCoreConfiguration {
         groupService: AuthGroupService,
         resourceService: BkResourceService,
         actionsService: ActionService,
-        authCustomizePermissionService: AuthCustomizePermissionService
+        authCustomizePermissionService: AuthCustomizePermissionService,
+        permissionGradeService: PermissionGradeService
     ) = SimplePermissionRoleService(
         groupService = groupService,
         resourceService = resourceService,
         actionsService = actionsService,
-        authCustomizePermissionService = authCustomizePermissionService
+        authCustomizePermissionService = authCustomizePermissionService,
+        permissionGradeService = permissionGradeService
     )
 
     @Bean
@@ -225,6 +227,7 @@ class AuthCoreConfiguration {
     fun defaultDeptServiceImpl() = DefaultDeptServiceImpl()
 
     @Bean
+    @ConditionalOnMissingBean(TokenCheckFilter::class)
     fun tokenFilter(clientTokenService: ClientTokenService) = TokenCheckFilter(clientTokenService)
 
     @Bean

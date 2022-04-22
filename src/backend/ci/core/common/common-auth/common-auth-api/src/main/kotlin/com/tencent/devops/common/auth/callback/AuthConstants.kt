@@ -34,4 +34,11 @@ object AuthConstants {
     const val TOO_RESULT_DATA_MESSAGE = "not support, too much data found"
     const val MAX_LIMIT = 100
     const val KEYWORD_MIN_SIZE = 2
+    const val DEFAULT_SYSTEM = "ci"
+    const val MAX_EXPIRED_DAY = 365
+    const val ALL_ACTION = "all_action"
+    const val MIDDLE_LABLE = "_"
+    const val MAX_GROUP_COUNT = 500
+    const val MAX_CREATE_COUNT = 100
+    const val ADMIN = "admin"
 }

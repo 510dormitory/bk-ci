@@ -209,7 +209,7 @@ class AuthGroupMemberDao {
         with(TAuthGroupMember.T_AUTH_GROUP_MEMBER) {
             return dslContext.selectFrom(this)
                 .where(USER_ID.`in`(userIds)).
-                and(EXPIRED_TYPE.notEqual(ExpiredStatus.TIMEOUT.ordinal))
+                and(EXPIRED_TYPE.notEqual(ExpiredStatus.TIMEOUT.type))
                 .and(GROUP_ID.eq(roleId))
                 .fetch()
         }

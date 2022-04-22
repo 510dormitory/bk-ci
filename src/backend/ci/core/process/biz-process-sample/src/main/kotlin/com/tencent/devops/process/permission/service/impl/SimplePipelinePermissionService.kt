@@ -33,7 +33,9 @@ import com.tencent.devops.common.api.exception.PermissionForbiddenException
 import com.tencent.devops.common.auth.api.AuthPermission
 import com.tencent.devops.common.auth.api.AuthResourceType
 import com.tencent.devops.common.auth.api.pojo.BkAuthGroup
+import com.tencent.devops.common.auth.callback.AuthConstants.DEFAULT_SYSTEM
 import com.tencent.devops.common.client.Client
+import com.tencent.devops.common.client.ClientTokenService
 import com.tencent.devops.process.engine.dao.PipelineInfoDao
 import com.tencent.devops.process.permission.PipelinePermissionService
 import org.jooq.DSLContext
@@ -42,7 +44,8 @@ import org.springframework.beans.factory.annotation.Autowired
 class SimplePipelinePermissionService @Autowired constructor(
     private val dslContext: DSLContext,
     private val pipelineInfoDao: PipelineInfoDao,
-    val client: Client
+    val client: Client,
+    val tokenService: ClientTokenService
 ) : PipelinePermissionService {
     override fun checkPipelinePermission(
         userId: String,
@@ -51,13 +54,13 @@ class SimplePipelinePermissionService @Autowired constructor(
     ): Boolean {
         return if (permission == AuthPermission.VIEW) {
             client.get(ServiceProjectAuthResource::class).isProjectUser(
-                token = "",
+                token = tokenService.getSystemToken(DEFAULT_SYSTEM)!!,
                 userId = userId,
                 projectCode = projectId
             ).data!!
         } else {
             client.get(ServiceProjectAuthResource::class).checkProjectManager(
-                token = "",
+                token = tokenService.getSystemToken(DEFAULT_SYSTEM)!!,
                 userId = userId,
                 projectCode = projectId
             ).data!!
@@ -71,7 +74,7 @@ class SimplePipelinePermissionService @Autowired constructor(
         permission: AuthPermission,
     ): Boolean {
         return client.get(ServicePermissionAuthResource::class).validateUserResourcePermissionByRelation(
-            token = "",
+            token = tokenService.getSystemToken(DEFAULT_SYSTEM)!!,
             userId = userId,
             projectCode = projectId,
             action = permission.value,
@@ -109,7 +112,7 @@ class SimplePipelinePermissionService @Autowired constructor(
             projectCode = projectId,
             resourceType = AuthResourceType.PIPELINE_DEFAULT.value,
             action = permission.value,
-            token = ""
+            token = tokenService.getSystemToken(DEFAULT_SYSTEM)!!,
         ).data ?: emptyList()
         val fakeList = mutableListOf<String>()
         // 有*说明有所有流水线权限
@@ -142,7 +145,7 @@ class SimplePipelinePermissionService @Autowired constructor(
 
     override fun isProjectUser(userId: String, projectId: String, group: BkAuthGroup?): Boolean {
         return client.get(ServiceProjectAuthResource::class).isProjectUser(
-            token = "",
+            token = tokenService.getSystemToken(DEFAULT_SYSTEM)!!,
             userId = userId,
             projectCode = projectId,
             group = group
@@ -151,7 +154,7 @@ class SimplePipelinePermissionService @Autowired constructor(
 
     override fun checkProjectManager(userId: String, projectId: String): Boolean {
         return client.get(ServiceProjectAuthResource::class).checkProjectManager(
-            token = "",
+            token = tokenService.getSystemToken(DEFAULT_SYSTEM)!!,
             userId = userId,
             projectCode = projectId
         ).data!!

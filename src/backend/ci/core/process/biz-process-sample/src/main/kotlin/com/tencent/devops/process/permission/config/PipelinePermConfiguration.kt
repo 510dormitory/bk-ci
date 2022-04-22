@@ -92,11 +92,13 @@ class PipelinePermConfiguration {
     fun simplePipelinePermissionService(
         dslContext: DSLContext,
         pipelineInfoDao: PipelineInfoDao,
-        client: Client
+        client: Client,
+        tokenService: ClientTokenService
     ): PipelinePermissionService = SimplePipelinePermissionService(
         dslContext = dslContext,
         pipelineInfoDao = pipelineInfoDao,
-        client = client
+        client = client,
+        tokenService = tokenService
     )
 
     @Bean

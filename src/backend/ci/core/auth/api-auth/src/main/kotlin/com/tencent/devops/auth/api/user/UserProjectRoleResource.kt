@@ -87,6 +87,23 @@ interface UserProjectRoleResource {
         groupInfo: ProjectRoleDTO
     ): Result<Boolean>
 
+    @PUT
+    @Path("/projectIds/{projectId}/roleIds/{roleId}/desc")
+    @ApiOperation("用户组重命名")
+    fun updateGroupDesc(
+        @ApiParam(name = "用户名", required = true)
+        @HeaderParam(AUTH_HEADER_USER_ID)
+        userId: String,
+        @ApiParam(name = "项目标识", required = true)
+        @PathParam("projectId")
+        projectId: String,
+        @ApiParam(name = "角色Id", required = true)
+        @PathParam("roleId")
+        roleId: Int,
+        @ApiParam(name = "描述", required = true)
+        desc: String
+    ): Result<Boolean>
+
     @GET
     @Path("/projectIds/{projectId}")
     @ApiOperation("获取用户组")
