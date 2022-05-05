@@ -196,7 +196,7 @@ class StrategyService @Autowired constructor(
                     )
                 }
                 actions.forEach {
-                    if (!systemResource.contains(it)) {
+                    if (!systemAction.contains(it)) {
                         logger.warn("$it is inval action")
                         throw ErrorCodeException(
                             errorCode = AuthMessageCode.STRATEGT_CHECKOUT_FAIL,
