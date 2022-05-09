@@ -64,7 +64,12 @@ abstract class BkResourceServiceImpl @Autowired constructor(
                 )
             )
         }
-        val parentResources = resourceDao.getParentResource(dslContext).map { it["resourceType"] }
+        val parentResources = mutableListOf<String>()
+        resourceDao.getParentResource(dslContext).map {
+            if (it.parent.isNullOrEmpty()) {
+                parentResources.add(it.resourcetype)
+            }
+        }
         // 校验父类资源是否合法
         if (resource.parent != null && !parentResources.contains(resource.parent)) {
             logger.warn("create parents ${resource.parent} is ")

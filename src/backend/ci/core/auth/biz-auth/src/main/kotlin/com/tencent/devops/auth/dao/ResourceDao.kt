@@ -108,9 +108,9 @@ class ResourceDao {
 
     fun getParentResource(
         dslContext: DSLContext
-    ): Result<Record1<String>> {
+    ): Result<TAuthResourceRecord> {
         with(TAuthResource.T_AUTH_RESOURCE) {
-            return dslContext.select(RESOURCETYPE).from(this).where(DELETE.eq(false).and(PARENT.isNull)).fetch()
+            return dslContext.selectFrom(this).where(DELETE.eq(false)).fetch()
         }
     }
 
