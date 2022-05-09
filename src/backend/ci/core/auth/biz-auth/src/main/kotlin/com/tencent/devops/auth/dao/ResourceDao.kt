@@ -110,7 +110,7 @@ class ResourceDao {
         dslContext: DSLContext
     ): Result<Record1<String>> {
         with(TAuthResource.T_AUTH_RESOURCE) {
-            return dslContext.select(RESOURCETYPE).where(DELETE.eq(false).and(PARENT.isNull)).fetch()
+            return dslContext.select(RESOURCETYPE).from(this).where(DELETE.eq(false).and(PARENT.isNull)).fetch()
         }
     }
 
@@ -120,7 +120,7 @@ class ResourceDao {
     ): Result<TAuthResourceRecord?> {
         with(TAuthResource.T_AUTH_RESOURCE) {
             return dslContext.selectFrom(this)
-                .where(SYSTEM.eq(systemId).and(DELETE.eq(false)))
+                .where((SYSTEM.eq(systemId).or(SYSTEM.eq(SystemType.ALL.name))).and(DELETE.eq(false)))
                 .fetch()
         }
     }
