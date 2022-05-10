@@ -72,12 +72,10 @@ class AuthGroupCustomizePermissionDao {
     ): Int {
         with(TAuthCustomizeGroupPermission.T_AUTH_CUSTOMIZE_GROUP_PERMISSION) {
             return dslContext.update(this)
-                .set(RESOURCE_TYPE, resourceType)
                 .set(ACTION_ID, actions)
                 .set(UPDATE_USER, UPDATE_USER)
-                .set(UPDATE_TIME, LocalDateTime.now()).where(
-                    GROUP_ID.eq(groupId)
-                ).execute()
+                .set(UPDATE_TIME, LocalDateTime.now())
+                .where(GROUP_ID.eq(groupId).and(RESOURCE_TYPE.eq(resourceType))).execute()
         }
     }
 

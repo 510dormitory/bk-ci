@@ -56,6 +56,21 @@ class AuthCustomizePermissionService @Autowired constructor(
         )
     }
 
+    fun updateCustomizePermission(
+        userId: String,
+        groupId: Int,
+        resourceType: String,
+        actions: String
+    ): Boolean {
+        return authGroupCustomizePermissionDao.updateGroupPermission(
+            dslContext = dslContext,
+            userId = userId,
+            groupId = groupId,
+            resourceType = resourceType,
+            actions = actions
+        ) == 1
+    }
+
     fun checkCustomizePermission(
         groupId: Int,
         resourceType: String,

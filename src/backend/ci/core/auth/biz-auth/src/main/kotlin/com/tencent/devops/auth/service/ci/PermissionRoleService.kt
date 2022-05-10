@@ -73,6 +73,13 @@ interface PermissionRoleService {
         permissionStrategy: Map<String, List<String>>
     ): Boolean
 
+    fun updateRolePermissionStrategy(
+        userId: String,
+        projectCode: String,
+        roleId: Int,
+        permissionStrategy: Map<String, List<String>>
+    ): Boolean
+
     fun getPermissionStrategy(
         projectCode: String,
         roleId: Int

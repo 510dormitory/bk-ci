@@ -117,6 +117,15 @@ class UserProjectRoleResourceImpl @Autowired constructor(
         )
     }
 
+    override fun updateRolePermissionStrategy(
+        userId: String,
+        projectCode: String,
+        roleId: Int,
+        strategy: Map<String, List<String>>,
+    ): Result<Boolean> {
+        TODO("Not yet implemented")
+    }
+
     override fun getRolePermissionStrategy(
         userId: String,
         projectCode: String,

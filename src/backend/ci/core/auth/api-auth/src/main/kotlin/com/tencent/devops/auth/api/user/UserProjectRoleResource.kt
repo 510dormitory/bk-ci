@@ -143,7 +143,25 @@ interface UserProjectRoleResource {
 
     @POST
     @Path("/{roleId}/projectCodes/{projectCode}/permission/strategy")
+    @ApiOperation("分配自定义用户组权限")
     fun setRolePermissionStrategy(
+        @ApiParam(name = "用户名", required = true)
+        @HeaderParam(AUTH_HEADER_USER_ID)
+        userId: String,
+        @ApiParam(name = "项目标识", required = true)
+        @PathParam("projectCode")
+        projectCode: String,
+        @ApiParam(name = "角色Id", required = true)
+        @PathParam("roleId")
+        roleId: Int,
+        @ApiParam(name = "权限信息", required = true)
+        strategy: Map<String, List<String>>
+    ): Result<Boolean>
+
+    @PUT
+    @Path("/{roleId}/projectCodes/{projectCode}/permission/strategy")
+    @ApiOperation("修改自定义用户组权限")
+    fun updateRolePermissionStrategy(
         @ApiParam(name = "用户名", required = true)
         @HeaderParam(AUTH_HEADER_USER_ID)
         userId: String,

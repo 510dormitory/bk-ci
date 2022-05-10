@@ -150,38 +150,12 @@ abstract class AbsPermissionRoleServiceImpl @Autowired constructor(
         roleId: Int,
         permissionStrategy: Map<String, List<String>>
     ): Boolean {
-        val groupInfo = groupService.getGroupById(roleId) ?: throw ErrorCodeException(
-            errorCode = AuthMessageCode.GROUP_NOT_EXIST,
-            defaultMessage = MessageCodeUtil.getCodeLanMessage(AuthMessageCode.GROUP_NOT_EXIST)
+        permissionStrategyCheck(
+            userId = userId,
+            projectCode = projectCode,
+            roleId = roleId,
+            permissionStrategy = permissionStrategy
         )
-        // 默认用户组不能调整权限策略
-        if (groupInfo.groupType) {
-            throw ErrorCodeException(
-                errorCode = AuthMessageCode.DEFAULT_GROUP_NOT_ALLOW_UPDATE,
-                defaultMessage = MessageCodeUtil.getCodeLanMessage(AuthMessageCode.DEFAULT_GROUP_NOT_ALLOW_UPDATE)
-            )
-        }
-        managerCheck(userId, projectCode)
-
-        permissionStrategy.forEach { resource, actions ->
-            // 校验资源和action是否存在
-            if (resourceService.getResource(resource) == null) {
-                logger.info("createCustomizePermission $userId$roleId$resource not exist")
-                throw ErrorCodeException(
-                    errorCode = AuthMessageCode.RESOURCE_NOT_EXSIT,
-                    defaultMessage = MessageCodeUtil.getCodeMessage(
-                        messageCode = AuthMessageCode.RESOURCE_NOT_EXSIT, params = arrayOf(resource))
-                )
-            }
-
-            if (!actionsService.checkSystemAction(actions)) {
-                AuthCustomizePermissionService.logger.info("createCustomizePermission $userId$roleId$actions not exist")
-                throw ErrorCodeException(
-                    errorCode = AuthMessageCode.PERMISSION_MODEL_CHECK_FAIL,
-                    defaultMessage = MessageCodeUtil.getCodeLanMessage(AuthMessageCode.PERMISSION_MODEL_CHECK_FAIL)
-                )
-            }
-        }
         permissionStrategy.forEach { resource, actions ->
             val action = actions.joinToString(",")
             logger.info("$projectCode $roleId $resource $actions $action set permission")
@@ -193,6 +167,30 @@ abstract class AbsPermissionRoleServiceImpl @Autowired constructor(
             )
         }
         return rolePermissionStrategyExt(userId, projectCode, roleId, permissionStrategy)
+    }
+
+    override fun updateRolePermissionStrategy(
+        userId: String,
+        projectCode: String,
+        roleId: Int,
+        permissionStrategy: Map<String, List<String>>,
+    ): Boolean {
+        permissionStrategyCheck(
+            userId = userId,
+            projectCode = projectCode,
+            roleId = roleId,
+            permissionStrategy = permissionStrategy
+        )
+        permissionStrategy.forEach { resource, actionList ->
+            val actions = actionList.joinToString(",")
+            authCustomizePermissionService.updateCustomizePermission(
+                userId = userId,
+                groupId = roleId,
+                actions = actions,
+                resourceType = resource
+            )
+        }
+        return true
     }
 
     override fun getPermissionStrategy(
@@ -225,7 +223,6 @@ abstract class AbsPermissionRoleServiceImpl @Autowired constructor(
         roleId: Int,
         permissionStrategy: Map<String, List<String>>
     ): Boolean
-
 
     private fun checkRoleCode(code: String, defaultGroup: Boolean) {
         // 校验用户组名称
@@ -273,6 +270,47 @@ abstract class AbsPermissionRoleServiceImpl @Autowired constructor(
                 )
             }
         }
+    }
+
+    private fun permissionStrategyCheck(
+        userId: String,
+        projectCode: String,
+        roleId: Int,
+        permissionStrategy: Map<String, List<String>>
+    ): Boolean {
+        val groupInfo = groupService.getGroupById(roleId) ?: throw ErrorCodeException(
+            errorCode = AuthMessageCode.GROUP_NOT_EXIST,
+            defaultMessage = MessageCodeUtil.getCodeLanMessage(AuthMessageCode.GROUP_NOT_EXIST)
+        )
+        // 默认用户组不能调整权限策略
+        if (groupInfo.groupType) {
+            throw ErrorCodeException(
+                errorCode = AuthMessageCode.DEFAULT_GROUP_NOT_ALLOW_UPDATE,
+                defaultMessage = MessageCodeUtil.getCodeLanMessage(AuthMessageCode.DEFAULT_GROUP_NOT_ALLOW_UPDATE)
+            )
+        }
+        managerCheck(userId, projectCode)
+
+        permissionStrategy.forEach { resource, actions ->
+            // 校验资源和action是否存在
+            if (resourceService.getResource(resource) == null) {
+                logger.info("createCustomizePermission $userId$roleId$resource not exist")
+                throw ErrorCodeException(
+                    errorCode = AuthMessageCode.RESOURCE_NOT_EXSIT,
+                    defaultMessage = MessageCodeUtil.getCodeMessage(
+                        messageCode = AuthMessageCode.RESOURCE_NOT_EXSIT, params = arrayOf(resource))
+                )
+            }
+
+            if (!actionsService.checkSystemAction(actions)) {
+                AuthCustomizePermissionService.logger.info("createCustomizePermission $userId$roleId$actions not exist")
+                throw ErrorCodeException(
+                    errorCode = AuthMessageCode.PERMISSION_MODEL_CHECK_FAIL,
+                    defaultMessage = MessageCodeUtil.getCodeLanMessage(AuthMessageCode.PERMISSION_MODEL_CHECK_FAIL)
+                )
+            }
+        }
+        return true
     }
 
     // 校验操作人是否有项目分级管理员权限

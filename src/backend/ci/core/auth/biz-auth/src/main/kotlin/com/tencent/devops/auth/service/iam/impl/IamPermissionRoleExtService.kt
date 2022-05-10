@@ -155,6 +155,15 @@ open class IamPermissionRoleExtService @Autowired constructor(
         return emptyList()
     }
 
+    override fun updateRolePermissionStrategy(
+        userId: String,
+        projectCode: String,
+        roleId: Int,
+        permissionStrategy: Map<String, List<String>>,
+    ): Boolean {
+        return super.updateRolePermissionStrategy(userId, projectCode, roleId, permissionStrategy)
+    }
+
     override fun rolePermissionStrategyExt(
         userId: String,
         projectCode: String,
