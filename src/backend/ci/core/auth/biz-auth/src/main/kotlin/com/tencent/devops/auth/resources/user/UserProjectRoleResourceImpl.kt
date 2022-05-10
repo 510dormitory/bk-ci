@@ -123,7 +123,14 @@ class UserProjectRoleResourceImpl @Autowired constructor(
         roleId: Int,
         strategy: Map<String, List<String>>,
     ): Result<Boolean> {
-        TODO("Not yet implemented")
+        return Result(
+            permissionRoleService.updateRolePermissionStrategy(
+                userId = userId,
+                projectCode = projectCode,
+                roleId = roleId,
+                permissionStrategy = strategy
+            )
+        )
     }
 
     override fun getRolePermissionStrategy(
