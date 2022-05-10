@@ -92,10 +92,9 @@ open class IamPermissionRoleExtService @Autowired constructor(
     override fun createPermissionRole(
         userId: String,
         projectId: String,
-        projectCode: String,
         groupInfo: ProjectRoleDTO,
     ): Int {
-        val roleId = super.createPermissionRole(userId, projectId, projectCode, groupInfo)
+        val roleId = super.createPermissionRole(userId, projectId, groupInfo)
         // 扩展添加IAM用户组
         try {
             createIamGroup(
@@ -352,8 +351,8 @@ open class IamPermissionRoleExtService @Autowired constructor(
             }
         } else {
             actionList.forEach {
-                // 如果是非project资源。 若action是create,需挂在project下,因create相关的资源都是绑定在项目下。
-                if (it == AuthPermission.CREATE.value) {
+                // 如果是非project资源。 若action包含create,需挂在project下,因create相关的资源都是绑定在项目下。
+                if (it.contains(AuthPermission.CREATE.value)) {
                     projectStrategyList.add(it)
                 } else {
                     resourceStrategyList.add(it)

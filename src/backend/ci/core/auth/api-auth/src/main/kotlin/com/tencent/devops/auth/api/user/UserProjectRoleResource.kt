@@ -64,9 +64,6 @@ interface UserProjectRoleResource {
         @ApiParam(name = "项目标识", required = true)
         @PathParam("projectId")
         projectId: String,
-        @ApiParam(name = "项目标识", required = true)
-        @QueryParam("projectCode")
-        projectCode: String,
         @ApiParam("用户组信息", required = true)
         groupInfo: ProjectRoleDTO
     ): Result<String>

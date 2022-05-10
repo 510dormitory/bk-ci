@@ -52,7 +52,6 @@ interface PermissionRoleService {
     fun createPermissionRole(
         userId: String,
         projectId: String,
-        projectCode: String,
         groupInfo: ProjectRoleDTO
     ): Int
 

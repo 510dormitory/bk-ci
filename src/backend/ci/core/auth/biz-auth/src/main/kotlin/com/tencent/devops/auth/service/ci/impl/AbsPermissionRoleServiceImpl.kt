@@ -56,7 +56,6 @@ abstract class AbsPermissionRoleServiceImpl @Autowired constructor(
     override fun createPermissionRole(
         userId: String,
         projectId: String,
-        projectCode: String,
         groupInfo: ProjectRoleDTO
     ): Int {
         var groupType: Boolean?
@@ -78,7 +77,7 @@ abstract class AbsPermissionRoleServiceImpl @Autowired constructor(
 
         val roleId = groupService.createGroup(
             userId = userId,
-            projectCode = projectCode,
+            projectCode = projectId,
             groupInfo = GroupDTO(
                 groupCode = groupInfo.code,
                 groupType = groupType,
