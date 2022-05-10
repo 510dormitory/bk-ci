@@ -107,6 +107,10 @@ abstract class BKActionServiceImpl @Autowired constructor(
         return actionDao.getAction(dslContext, actionId, "*")
     }
 
+    override fun getActions(actionIds: List<String>): List<ActionInfo>? {
+        return actionDao.getActions(dslContext, actionIds)
+    }
+
     override fun actionList(): List<ActionInfo>? {
         return actionDao.getAllAction(dslContext, "*")
     }

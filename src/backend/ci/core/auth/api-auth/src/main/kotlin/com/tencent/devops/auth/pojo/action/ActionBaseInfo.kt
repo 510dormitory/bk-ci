@@ -25,57 +25,9 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.tencent.devops.auth.service.ci
+package com.tencent.devops.auth.pojo.action
 
-import com.tencent.devops.auth.pojo.DefaultGroup
-import com.tencent.devops.auth.pojo.action.ActionBaseInfo
-import com.tencent.devops.auth.pojo.action.ActionInfo
-import com.tencent.devops.auth.pojo.dto.ProjectRoleDTO
-import com.tencent.devops.auth.pojo.vo.GroupInfoVo
-
-interface PermissionRoleService {
-
-    fun updatePermissionRole(
-        userId: String,
-        projectId: String,
-        roleId: Int,
-        groupInfo: ProjectRoleDTO
-    )
-
-    fun updateGroupDesc(
-        userId: String,
-        projectId: String,
-        roleId: Int,
-        desc: String
-    ): Boolean
-
-    fun createPermissionRole(
-        userId: String,
-        projectId: String,
-        projectCode: String,
-        groupInfo: ProjectRoleDTO
-    ): Int
-
-    fun createProjectManager(
-        userId: String,
-        projectId: String
-    ): Int
-
-    fun getPermissionRole(projectId: String): List<GroupInfoVo>
-
-    fun deletePermissionRole(userId: String, projectId: String, roleId: Int)
-
-    fun getDefaultRole(): List<DefaultGroup>
-
-    fun rolePermissionStrategy(
-        userId: String,
-        projectCode: String,
-        roleId: Int,
-        permissionStrategy: Map<String, List<String>>
-    ): Boolean
-
-    fun getPermissionStrategy(
-        projectCode: String,
-        roleId: Int
-    ): Map<String, List<ActionInfo>>
-}
+data class ActionBaseInfo(
+    val actionId: String,
+    val actionName: String
+)

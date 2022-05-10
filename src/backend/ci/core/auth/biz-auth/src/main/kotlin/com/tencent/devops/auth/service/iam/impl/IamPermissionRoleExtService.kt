@@ -85,7 +85,8 @@ open class IamPermissionRoleExtService @Autowired constructor(
     resourceService = resourceService,
     actionsService = actionsService,
     authCustomizePermissionService = authCustomizePermissionService,
-    permissionGradeService = permissionGradeService
+    permissionGradeService = permissionGradeService,
+    strategyService = strategyService
 ) {
 
     override fun createPermissionRole(

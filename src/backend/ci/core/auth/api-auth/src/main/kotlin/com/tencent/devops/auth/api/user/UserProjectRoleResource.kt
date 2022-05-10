@@ -29,6 +29,7 @@
 package com.tencent.devops.auth.api.user
 
 import com.tencent.devops.auth.pojo.DefaultGroup
+import com.tencent.devops.auth.pojo.action.ActionInfo
 import com.tencent.devops.auth.pojo.dto.ProjectRoleDTO
 import com.tencent.devops.auth.pojo.vo.GroupInfoVo
 import com.tencent.devops.common.api.auth.AUTH_HEADER_USER_ID
@@ -158,6 +159,20 @@ interface UserProjectRoleResource {
         @ApiParam(name = "权限信息", required = true)
         strategy: Map<String, List<String>>
     ): Result<Boolean>
+
+    @GET
+    @Path("/{roleId}/projectCodes/{projectCode}/permission/strategy")
+    fun getRolePermissionStrategy(
+        @ApiParam(name = "用户名", required = true)
+        @HeaderParam(AUTH_HEADER_USER_ID)
+        userId: String,
+        @ApiParam(name = "项目标识", required = true)
+        @PathParam("projectCode")
+        projectCode: String,
+        @ApiParam(name = "角色Id", required = true)
+        @PathParam("roleId")
+        roleId: Int
+    ): Result<Map<String, List<ActionInfo>>>
 
     @GET
     @Path("/default/role")

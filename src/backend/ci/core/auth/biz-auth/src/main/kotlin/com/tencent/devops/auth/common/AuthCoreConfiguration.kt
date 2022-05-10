@@ -191,13 +191,15 @@ class AuthCoreConfiguration {
         resourceService: BkResourceService,
         actionsService: ActionService,
         authCustomizePermissionService: AuthCustomizePermissionService,
-        permissionGradeService: PermissionGradeService
+        permissionGradeService: PermissionGradeService,
+        strategyService: StrategyService
     ) = SimplePermissionRoleService(
         groupService = groupService,
         resourceService = resourceService,
         actionsService = actionsService,
         authCustomizePermissionService = authCustomizePermissionService,
-        permissionGradeService = permissionGradeService
+        permissionGradeService = permissionGradeService,
+        strategyService = strategyService
     )
 
     @Bean

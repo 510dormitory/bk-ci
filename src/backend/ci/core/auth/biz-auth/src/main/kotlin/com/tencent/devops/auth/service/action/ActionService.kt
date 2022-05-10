@@ -38,6 +38,8 @@ interface ActionService {
 
     fun getAction(actionId: String): ActionInfo?
 
+    fun getActions(actionIds: List<String>): List<ActionInfo>?
+
     fun actionList(): List<ActionInfo>?
 
     /**

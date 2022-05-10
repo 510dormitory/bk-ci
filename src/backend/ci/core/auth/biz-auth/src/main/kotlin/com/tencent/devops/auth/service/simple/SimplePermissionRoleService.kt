@@ -32,6 +32,7 @@ import com.tencent.devops.auth.pojo.dto.ProjectRoleDTO
 import com.tencent.devops.auth.pojo.vo.GroupInfoVo
 import com.tencent.devops.auth.service.AuthCustomizePermissionService
 import com.tencent.devops.auth.service.AuthGroupService
+import com.tencent.devops.auth.service.StrategyService
 import com.tencent.devops.auth.service.action.ActionService
 import com.tencent.devops.auth.service.action.BkResourceService
 import com.tencent.devops.auth.service.ci.impl.AbsPermissionRoleServiceImpl
@@ -47,13 +48,15 @@ class SimplePermissionRoleService @Autowired constructor(
     resourceService: BkResourceService,
     actionsService: ActionService,
     private val authCustomizePermissionService: AuthCustomizePermissionService,
-    private val permissionGradeService: PermissionGradeService
+    private val permissionGradeService: PermissionGradeService,
+    private val strategyService: StrategyService
 ) : AbsPermissionRoleServiceImpl(
     groupService = groupService,
     resourceService = resourceService,
     actionsService = actionsService,
     authCustomizePermissionService = authCustomizePermissionService,
-    permissionGradeService = permissionGradeService
+    permissionGradeService = permissionGradeService,
+    strategyService = strategyService
 ) {
     override fun createPermissionRole(
         userId: String,

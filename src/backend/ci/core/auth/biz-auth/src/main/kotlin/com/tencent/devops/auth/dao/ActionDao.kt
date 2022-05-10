@@ -97,6 +97,22 @@ class ActionDao {
         }
     }
 
+    fun getActions(
+        dslContext: DSLContext,
+        actionIds: List<String>
+    ): List<ActionInfo>? {
+        with(TAuthAction.T_AUTH_ACTION) {
+            val record = dslContext.selectFrom(this)
+                .where(ACTIONID.`in`(actionIds).and(DELETE.eq(false)))
+                .fetch() ?: return null
+            val actionInfo = mutableListOf<ActionInfo>()
+            record.forEach {
+                actionInfo.add(convert(it))
+            }
+            return actionInfo
+        }
+    }
+
     fun getAllAction(
         dslContext: DSLContext,
         field: String

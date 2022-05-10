@@ -28,10 +28,13 @@
 package com.tencent.devops.auth.service.ci.impl
 
 import com.tencent.devops.auth.constant.AuthMessageCode
+import com.tencent.devops.auth.pojo.action.ActionBaseInfo
+import com.tencent.devops.auth.pojo.action.ActionInfo
 import com.tencent.devops.auth.pojo.dto.GroupDTO
 import com.tencent.devops.auth.pojo.dto.ProjectRoleDTO
 import com.tencent.devops.auth.service.AuthCustomizePermissionService
 import com.tencent.devops.auth.service.AuthGroupService
+import com.tencent.devops.auth.service.StrategyService
 import com.tencent.devops.auth.service.action.ActionService
 import com.tencent.devops.auth.service.action.BkResourceService
 import com.tencent.devops.auth.service.ci.PermissionRoleService
@@ -47,7 +50,8 @@ abstract class AbsPermissionRoleServiceImpl @Autowired constructor(
     private val resourceService: BkResourceService,
     private val actionsService: ActionService,
     private val authCustomizePermissionService: AuthCustomizePermissionService,
-    private val permissionGradeService: PermissionGradeService
+    private val permissionGradeService: PermissionGradeService,
+    private val strategyService: StrategyService
 ) : PermissionRoleService {
     override fun createPermissionRole(
         userId: String,
@@ -190,6 +194,30 @@ abstract class AbsPermissionRoleServiceImpl @Autowired constructor(
             )
         }
         return rolePermissionStrategyExt(userId, projectCode, roleId, permissionStrategy)
+    }
+
+    override fun getPermissionStrategy(
+        projectCode: String,
+        roleId: Int,
+    ): Map<String, List<ActionInfo>> {
+        val groupInfo = groupService.getGroupById(roleId) ?: return emptyMap()
+        val defaultGroup = groupInfo.groupType
+        var groupPermissionStrategy = mutableMapOf<String, List<ActionInfo>>()
+        if (defaultGroup) {
+            // 如果是默认用户组，直接获取默认用户组模版
+            val groupStrategy = strategyService.getStrategyByName(groupInfo.groupName) ?: return emptyMap()
+            groupStrategy.strategy.forEach { resource, actions ->
+                val actionInfos = actionsService.getActions(actions)
+                groupPermissionStrategy[resource] = actionInfos ?: emptyList()
+            }
+            return groupPermissionStrategy
+        } else {
+            // 如果是自定义用户组，从自定用户组权限表内获取自定义权限
+            groupPermissionStrategy = authCustomizePermissionService.getCustomizePermission(roleId)
+                as MutableMap<String, List<ActionInfo>>
+
+        }
+        return groupPermissionStrategy
     }
 
     abstract fun rolePermissionStrategyExt(

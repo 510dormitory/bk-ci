@@ -28,6 +28,8 @@
 package com.tencent.devops.auth.service
 
 import com.tencent.devops.auth.dao.AuthGroupCustomizePermissionDao
+import com.tencent.devops.auth.pojo.action.ActionInfo
+import com.tencent.devops.auth.service.action.ActionService
 import org.jooq.DSLContext
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -36,7 +38,8 @@ import org.springframework.stereotype.Service
 @Service
 class AuthCustomizePermissionService @Autowired constructor(
     val dslContext: DSLContext,
-    val authGroupCustomizePermissionDao: AuthGroupCustomizePermissionDao
+    val authGroupCustomizePermissionDao: AuthGroupCustomizePermissionDao,
+    val actionService: ActionService
 ) {
     fun createCustomizePermission(
         userId: String,
@@ -69,6 +72,21 @@ class AuthCustomizePermissionService @Autowired constructor(
             }
         }
         return false
+    }
+
+    fun getCustomizePermission(
+        groupId: Int
+    ): Map<String, List<ActionInfo>> {
+        val permissionInfos = authGroupCustomizePermissionDao.getPermission(
+            dslContext, groupId
+        ) ?: return emptyMap()
+        val permissionMap = mutableMapOf<String, List<ActionInfo>>()
+        permissionInfos.forEach {
+            val actionIds = it.actionId.split(",")
+            val actionInfos = actionService.getActions(actionIds) ?: emptyList()
+            permissionMap[it.resourceType] = actionInfos
+        }
+        return permissionMap
     }
 
     companion object {

@@ -30,6 +30,7 @@ package com.tencent.devops.auth.resources.user
 
 import com.tencent.devops.auth.api.user.UserProjectRoleResource
 import com.tencent.devops.auth.pojo.DefaultGroup
+import com.tencent.devops.auth.pojo.action.ActionInfo
 import com.tencent.devops.auth.pojo.dto.ProjectRoleDTO
 import com.tencent.devops.auth.pojo.vo.GroupInfoVo
 import com.tencent.devops.auth.service.ci.PermissionRoleService
@@ -116,6 +117,14 @@ class UserProjectRoleResourceImpl @Autowired constructor(
                 permissionStrategy = strategy
             )
         )
+    }
+
+    override fun getRolePermissionStrategy(
+        userId: String,
+        projectCode: String,
+        roleId: Int,
+    ): Result<Map<String, List<ActionInfo>>> {
+        return Result(permissionRoleService.getPermissionStrategy(projectCode, roleId))
     }
 
     override fun getDefaultRole(userId: String): Result<List<DefaultGroup>> {
