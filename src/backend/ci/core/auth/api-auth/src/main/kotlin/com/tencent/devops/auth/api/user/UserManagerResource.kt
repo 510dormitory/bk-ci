@@ -32,6 +32,7 @@ import com.tencent.devops.common.api.pojo.Result
 import io.swagger.annotations.Api
 import io.swagger.annotations.ApiOperation
 import javax.ws.rs.Consumes
+import javax.ws.rs.GET
 import javax.ws.rs.Path
 import javax.ws.rs.Produces
 import javax.ws.rs.core.MediaType
@@ -44,5 +45,6 @@ interface UserManagerResource {
 
     @ApiOperation("获取系统操作视图")
     @Path("/actionMap")
+    @GET
     fun getActions(): Result<Map<String, List<ActionInfo>>?>
 }
