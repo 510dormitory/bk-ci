@@ -62,13 +62,24 @@ class AuthCustomizePermissionService @Autowired constructor(
         resourceType: String,
         actions: String
     ): Boolean {
-        return authGroupCustomizePermissionDao.updateGroupPermission(
-            dslContext = dslContext,
-            userId = userId,
-            groupId = groupId,
-            resourceType = resourceType,
-            actions = actions
-        ) == 1
+        val records = authGroupCustomizePermissionDao.getPermissionByResource(dslContext, groupId, resourceType)
+        if (records == null) {
+            return authGroupCustomizePermissionDao.createGroupPermission(
+                dslContext = dslContext,
+                groupId = groupId,
+                resourceType = resourceType,
+                actions = actions,
+                userId = userId
+            ) == 1
+        } else {
+            return authGroupCustomizePermissionDao.updateGroupPermission(
+                dslContext = dslContext,
+                userId = userId,
+                groupId = groupId,
+                resourceType = resourceType,
+                actions = actions
+            ) == 1
+        }
     }
 
     fun checkCustomizePermission(

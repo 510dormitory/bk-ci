@@ -59,7 +59,7 @@ class AuthGroupCustomizePermissionDao {
                 false,
                 LocalDateTime.now(),
                 userId
-            ).execute()
+            ).onDuplicateKeyUpdate().set(ACTION_ID, actions).execute()
         }
     }
 
@@ -76,6 +76,17 @@ class AuthGroupCustomizePermissionDao {
                 .set(UPDATE_USER, UPDATE_USER)
                 .set(UPDATE_TIME, LocalDateTime.now())
                 .where(GROUP_ID.eq(groupId).and(RESOURCE_TYPE.eq(resourceType))).execute()
+        }
+    }
+
+    fun getPermissionByResource(
+        dslContext: DSLContext,
+        groupId: Int,
+        resourceType: String
+    ): TAuthCustomizeGroupPermissionRecord? {
+        with(TAuthCustomizeGroupPermission.T_AUTH_CUSTOMIZE_GROUP_PERMISSION) {
+            return dslContext.selectFrom(this)
+                .where(GROUP_ID.eq(groupId).and(RESOURCE_TYPE.eq(resourceType))).fetchAny()
         }
     }
 
