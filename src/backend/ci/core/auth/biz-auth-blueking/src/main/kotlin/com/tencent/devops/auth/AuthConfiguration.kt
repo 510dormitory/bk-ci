@@ -35,29 +35,20 @@ import com.tencent.devops.auth.service.AuthCustomizePermissionService
 import com.tencent.devops.auth.service.AuthDeptServiceImpl
 import com.tencent.devops.auth.service.AuthGroupMemberService
 import com.tencent.devops.auth.service.AuthGroupService
+import com.tencent.devops.auth.service.BkLocalManagerServiceImp
+import com.tencent.devops.auth.service.LocalManagerService
+import com.tencent.devops.auth.service.SampleLocalManagerServiceImpl
 import com.tencent.devops.auth.service.StrategyService
 import com.tencent.devops.auth.service.action.ActionService
 import com.tencent.devops.auth.service.action.BkResourceService
-import com.tencent.devops.auth.service.ci.PermissionProjectService
-import com.tencent.devops.auth.service.ci.PermissionRoleMemberService
-import com.tencent.devops.auth.service.ci.PermissionRoleService
-import com.tencent.devops.auth.service.ci.PermissionService
-import com.tencent.devops.auth.service.iam.IamCacheService
-import com.tencent.devops.auth.service.iam.PermissionGradeService
-import com.tencent.devops.auth.service.iam.PermissionGrantService
-import com.tencent.devops.auth.service.simple.SimpleAuthPermissionService
-import com.tencent.devops.auth.service.simple.SimplePermissionGraderServiceImpl
-import com.tencent.devops.auth.service.simple.SimplePermissionGrantServiceImpl
-import com.tencent.devops.auth.service.simple.SimplePermissionProjectServiceImpl
-import com.tencent.devops.auth.service.simple.SimplePermissionRoleMemberServiceImpl
-import com.tencent.devops.auth.service.simple.SimplePermissionRoleService
+import com.tencent.devops.auth.service.sample.SampleAuthPermissionService
+import com.tencent.devops.auth.service.sample.SamplePermissionProjectServiceImpl
 import com.tencent.devops.auth.service.stream.GithubStreamPermissionServiceImpl
 import com.tencent.devops.auth.service.stream.GitlabStreamPermissionServiceImpl
 import com.tencent.devops.auth.service.stream.StreamPermissionProjectServiceImpl
 import com.tencent.devops.auth.service.stream.StreamPermissionServiceImpl
 import com.tencent.devops.common.auth.service.IamEsbService
 import com.tencent.devops.common.redis.RedisOperation
-import org.jooq.DSLContext
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.AutoConfigureOrder
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
@@ -65,6 +56,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Primary
 import org.springframework.core.Ordered
 
 @Suppress("ALL")
@@ -89,6 +81,33 @@ class AuthConfiguration {
 
     @Bean
     fun iamEsbService() = IamEsbService()
+
+    @Bean
+    @ConditionalOnProperty(prefix = "auth", name = ["idProvider"], havingValue = "sample")
+    fun permissionService(
+        groupService: AuthGroupService,
+        actionService: ActionService,
+        resourceService: BkResourceService,
+        groupMemberService: AuthGroupMemberService,
+        authCustomizePermissionService: AuthCustomizePermissionService,
+        strategyService: StrategyService
+    ) = SampleAuthPermissionService(
+        groupService = groupService,
+        actionService = actionService,
+        resourceService = resourceService,
+        groupMemberService = groupMemberService,
+        authCustomizePermissionService = authCustomizePermissionService,
+        strategyService = strategyService
+    )
+
+    @Bean
+    @ConditionalOnProperty(prefix = "auth", name = ["idProvider"], havingValue = "sample")
+    fun permissionProjectService(
+        groupMemberService: AuthGroupMemberService,
+        groupService: AuthGroupService
+    ) = SamplePermissionProjectServiceImpl(
+        groupMemberService, groupService
+    )
 
     @Bean
     @ConditionalOnMissingBean
@@ -126,4 +145,13 @@ class AuthConfiguration {
     fun gitlabStreamProjectPermissionService(
         streamPermissionService: StreamPermissionServiceImpl
     ) = StreamPermissionProjectServiceImpl(streamPermissionService)
+
+    @Bean
+    @ConditionalOnProperty(prefix = "auth", name = ["idProvider"], havingValue = "bk_login_v3")
+    @Primary
+    fun bkManagerService() = BkLocalManagerServiceImp()
+
+    @Bean
+    @ConditionalOnMissingBean(LocalManagerService::class)
+    fun simpleManagerService() = SampleLocalManagerServiceImpl()
 }
