@@ -52,6 +52,7 @@ import javax.ws.rs.core.MediaType
 @Consumes(MediaType.APPLICATION_JSON)
 interface OpResourceResource {
 
+
     @POST
     @ApiOperation("添加系统资源")
     @Path("/")
